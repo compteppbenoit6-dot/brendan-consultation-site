@@ -2,8 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { ArrowLeft, Camera } from "lucide-react"
+import { ArrowLeft, Camera, Sparkles } from "lucide-react"
 import prisma from "@/lib/prisma"
 import { ImageLightbox } from "./image-lightbox"
 import { getContent } from "@/lib/content"
@@ -15,39 +14,65 @@ export default async function GalleryPage() {
   const content = await getContent();
 
   return (
-    // --- MODIFICATION: Removed the background class ---
     <div className="min-h-screen">
-      <div className="text-center py-16 px-4">
-        <Button variant="ghost" asChild className="mb-8 text-accent hover:text-accent-foreground hover:bg-accent/10 bg-background/50 backdrop-blur-sm rounded-full">
-          <Link href="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Link>
-        </Button>
-        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Camera className="h-12 w-12 text-primary" />
+      {/* Hero Section */}
+      <div className="relative py-20 px-4 overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
         </div>
-        {/* --- MODIFICATION: Added text-white and drop-shadow for readability --- */}
-        <h1 className="font-serif font-black text-4xl md:text-6xl text-white drop-shadow-md mb-4">
-          {content.gallery_title || "Picture Gallery"}
-        </h1>
-        {/* --- MODIFICATION: Changed text color and added drop-shadow --- */}
-        <p className="text-lg text-neutral-200 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-          {content.gallery_subtitle || "Visual moments from the journey. Life through my lens, beats through my soul."}
-        </p>
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <Button 
+            variant="ghost" 
+            asChild 
+            className="mb-8 text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-sm rounded-full border border-white/20"
+          >
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+          </Button>
+          
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm text-white/80">Visual Journey</span>
+          </div>
+          
+          <h1 className="font-serif font-black text-5xl md:text-7xl text-white mb-6 tracking-tight">
+            {content.gallery_title || "Picture Gallery"}
+          </h1>
+          
+          <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            {content.gallery_subtitle || "Visual moments from the journey. Life through my lens, beats through my soul."}
+          </p>
+          
+          {images.length > 0 && (
+            <div className="mt-8 flex items-center justify-center gap-6 text-white/60">
+              <div className="flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                <span>{images.length} photos</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <section className="py-12 px-4">
-        <div className="container mx-auto">
+      {/* Gallery Section */}
+      <section className="py-12 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           {images.length === 0 ? (
-             <div className="text-center py-12 bg-black/20 rounded-lg">
-              <Camera className="h-16 w-16 text-secondary mx-auto mb-4" />
-              <h3 className="font-serif font-bold text-xl text-white mb-2">The Gallery is Quiet</h3>
-              <p className="text-neutral-300">Check back soon for new visual moments.</p>
+            <div className="text-center py-24 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10">
+              <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-6">
+                <Camera className="h-10 w-10 text-white/50" />
+              </div>
+              <h3 className="font-serif font-bold text-2xl text-white mb-3">The Gallery is Quiet</h3>
+              <p className="text-white/60 max-w-md mx-auto">Check back soon for new visual moments from the journey.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {images.map((image) => (
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+              {images.map((image, index) => (
                 <ImageLightbox 
                   key={image.id} 
                   src={image.src} 
@@ -55,31 +80,46 @@ export default async function GalleryPage() {
                   title={image.title}
                   description={image.description}
                 >
-                  <Card
-                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 bg-card/90 backdrop-blur-sm cursor-pointer"
-                  >
-                    <div className="aspect-square overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5">
-                      <img
-                        src={image.src}
-                        alt={image.alt || 'Gallery image thumbnail'}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
+                  <div className="break-inside-avoid group cursor-pointer">
+                    <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/30 transition-all duration-500">
+                      {/* Image */}
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={image.src}
+                          alt={image.alt || 'Gallery image'}
+                          loading="lazy"
+                          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Content on hover */}
+                        <div className="absolute inset-0 p-5 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+                          {image.category && (
+                            <span className="inline-flex self-start px-3 py-1 rounded-full text-xs font-medium bg-primary/90 text-white mb-3">
+                              {image.category}
+                            </span>
+                          )}
+                          <h3 className="font-serif font-bold text-lg text-white leading-tight mb-1">
+                            {image.title || 'Untitled'}
+                          </h3>
+                          {image.description && (
+                            <p className="text-white/70 text-sm line-clamp-2">
+                              {image.description}
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Expand icon */}
+                        <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-6 space-y-3">
-                      {image.category && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                          {image.category}
-                        </span>
-                      )}
-                      <h3 className="font-serif font-bold text-lg leading-tight group-hover:text-primary transition-colors">
-                        {image.title || 'Untitled'}
-                      </h3>
-                      <p className="text-secondary text-sm leading-relaxed line-clamp-2">
-                        {image.description || 'No description available.'}
-                      </p>
-                    </div>
-                  </Card>
+                  </div>
                 </ImageLightbox>
               ))}
             </div>
