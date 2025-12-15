@@ -53,14 +53,15 @@ model MusicTrack {
 }
 
 model Appointment {
-  id           String   @id @default(cuid())
-  dateTime     DateTime @unique
-  serviceName  String
-  servicePrice Int
-  clientName   String
-  clientEmail  String
-  clientNotes  String?
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  dateTime       DateTime @unique
+  serviceName    String
+  servicePrice   Int
+  clientName     String
+  clientEmail    String
+  clientNotes    String?
+  clientTimezone String   @default("America/New_York")
+  createdAt      DateTime @default(now())
 }
 
 model Service {

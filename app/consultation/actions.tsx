@@ -19,6 +19,7 @@ const BookingSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
   message: z.string().optional(),
+  timezone: z.string().default("America/New_York"),
 })
 
 export async function getBookedSlots(date: Date) {
@@ -62,7 +63,7 @@ export async function createAppointment(formData: FormData) {
       }
     }
 
-    const { serviceName, servicePrice, date, time, firstName, lastName, email, message } = validatedFields.data;
+    const { serviceName, servicePrice, date, time, firstName, lastName, email, message, timezone } = validatedFields.data;
 
     const [hours, minutes] = time.split(':').map(Number);
     const appointmentDate = new Date(date);
@@ -84,6 +85,7 @@ export async function createAppointment(formData: FormData) {
         clientName: `${firstName} ${lastName}`,
         clientEmail: email,
         clientNotes: message || "",
+        clientTimezone: timezone,
       },
     });
 
@@ -96,7 +98,7 @@ export async function createAppointment(formData: FormData) {
     let emailHtml = emailTemplate
       .replace('__SERVICE_NAME__', serviceName)
       .replace('__SERVICE_PRICE__', String(servicePrice))
-      .replace('__APPOINTMENT_DATE__', appointmentDate.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' }))
+      .replace('__APPOINTMENT_DATE__', `${appointmentDate.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })} (Client timezone: ${timezone})`)
       .replace('__CLIENT_NAME__', `${firstName} ${lastName}`)
       .replace('__CLIENT_EMAIL__', email);
 

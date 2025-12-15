@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Heart, Clock, CheckCircle, Star, Shield, Zap, Copy, Calendar, User, Loader2 } from "lucide-react"
+import { ArrowLeft, Heart, Clock, CheckCircle, Star, Shield, Zap, Copy, Calendar, User, Loader2, Globe } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { getBookedSlots, createAppointment } from "./actions"
 import { format } from "date-fns"
@@ -97,14 +98,107 @@ function ServiceSelector({ onServiceSelect }: { onServiceSelect: (service: Servi
 }
 
 
+// Common timezones grouped by region
+const TIMEZONES = [
+  { group: "North America", zones: [
+    { value: "America/New_York", label: "Eastern Time (ET)" },
+    { value: "America/Chicago", label: "Central Time (CT)" },
+    { value: "America/Denver", label: "Mountain Time (MT)" },
+    { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+    { value: "America/Anchorage", label: "Alaska Time (AKT)" },
+    { value: "Pacific/Honolulu", label: "Hawaii Time (HT)" },
+    { value: "America/Toronto", label: "Toronto (ET)" },
+    { value: "America/Vancouver", label: "Vancouver (PT)" },
+    { value: "America/Mexico_City", label: "Mexico City (CST)" },
+  ]},
+  { group: "Europe", zones: [
+    { value: "Europe/London", label: "London (GMT/BST)" },
+    { value: "Europe/Paris", label: "Paris (CET)" },
+    { value: "Europe/Berlin", label: "Berlin (CET)" },
+    { value: "Europe/Madrid", label: "Madrid (CET)" },
+    { value: "Europe/Rome", label: "Rome (CET)" },
+    { value: "Europe/Amsterdam", label: "Amsterdam (CET)" },
+    { value: "Europe/Brussels", label: "Brussels (CET)" },
+    { value: "Europe/Zurich", label: "Zurich (CET)" },
+    { value: "Europe/Vienna", label: "Vienna (CET)" },
+    { value: "Europe/Stockholm", label: "Stockholm (CET)" },
+    { value: "Europe/Oslo", label: "Oslo (CET)" },
+    { value: "Europe/Copenhagen", label: "Copenhagen (CET)" },
+    { value: "Europe/Helsinki", label: "Helsinki (EET)" },
+    { value: "Europe/Warsaw", label: "Warsaw (CET)" },
+    { value: "Europe/Prague", label: "Prague (CET)" },
+    { value: "Europe/Budapest", label: "Budapest (CET)" },
+    { value: "Europe/Athens", label: "Athens (EET)" },
+    { value: "Europe/Moscow", label: "Moscow (MSK)" },
+    { value: "Europe/Istanbul", label: "Istanbul (TRT)" },
+  ]},
+  { group: "Asia", zones: [
+    { value: "Asia/Dubai", label: "Dubai (GST)" },
+    { value: "Asia/Kolkata", label: "India (IST)" },
+    { value: "Asia/Bangkok", label: "Bangkok (ICT)" },
+    { value: "Asia/Singapore", label: "Singapore (SGT)" },
+    { value: "Asia/Hong_Kong", label: "Hong Kong (HKT)" },
+    { value: "Asia/Shanghai", label: "Shanghai (CST)" },
+    { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+    { value: "Asia/Seoul", label: "Seoul (KST)" },
+    { value: "Asia/Manila", label: "Manila (PHT)" },
+    { value: "Asia/Jakarta", label: "Jakarta (WIB)" },
+    { value: "Asia/Karachi", label: "Karachi (PKT)" },
+    { value: "Asia/Tehran", label: "Tehran (IRST)" },
+    { value: "Asia/Jerusalem", label: "Jerusalem (IST)" },
+    { value: "Asia/Riyadh", label: "Riyadh (AST)" },
+  ]},
+  { group: "Oceania", zones: [
+    { value: "Australia/Sydney", label: "Sydney (AEST)" },
+    { value: "Australia/Melbourne", label: "Melbourne (AEST)" },
+    { value: "Australia/Brisbane", label: "Brisbane (AEST)" },
+    { value: "Australia/Perth", label: "Perth (AWST)" },
+    { value: "Australia/Adelaide", label: "Adelaide (ACST)" },
+    { value: "Pacific/Auckland", label: "Auckland (NZST)" },
+    { value: "Pacific/Fiji", label: "Fiji (FJT)" },
+  ]},
+  { group: "South America", zones: [
+    { value: "America/Sao_Paulo", label: "São Paulo (BRT)" },
+    { value: "America/Buenos_Aires", label: "Buenos Aires (ART)" },
+    { value: "America/Santiago", label: "Santiago (CLT)" },
+    { value: "America/Lima", label: "Lima (PET)" },
+    { value: "America/Bogota", label: "Bogotá (COT)" },
+    { value: "America/Caracas", label: "Caracas (VET)" },
+  ]},
+  { group: "Africa", zones: [
+    { value: "Africa/Cairo", label: "Cairo (EET)" },
+    { value: "Africa/Johannesburg", label: "Johannesburg (SAST)" },
+    { value: "Africa/Lagos", label: "Lagos (WAT)" },
+    { value: "Africa/Nairobi", label: "Nairobi (EAT)" },
+    { value: "Africa/Casablanca", label: "Casablanca (WET)" },
+  ]},
+];
+
 export default function ConsultationPage() {
   const [step, setStep] = useState(1)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedTimezone, setSelectedTimezone] = useState<string>("America/New_York")
   const [bookedSlots, setBookedSlots] = useState<string[]>([])
   const [isPending, startTransition] = useTransition()
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+
+  // Try to detect user's timezone on mount
+  useEffect(() => {
+    try {
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Check if it's in our list
+      const found = TIMEZONES.some(group => 
+        group.zones.some(z => z.value === userTimezone)
+      );
+      if (found) {
+        setSelectedTimezone(userTimezone);
+      }
+    } catch (e) {
+      // Keep default
+    }
+  }, []);
 
   useEffect(() => {
     if (selectedDate) {
@@ -142,6 +236,7 @@ export default function ConsultationPage() {
     currentFormData.append("servicePrice", selectedService.price.toString());
     currentFormData.append("date", selectedDate.toISOString().split('T')[0]);
     currentFormData.append("time", selectedTime);
+    currentFormData.append("timezone", selectedTimezone);
 
     startTransition(async () => {
       const result = await createAppointment(currentFormData);
@@ -240,6 +335,7 @@ export default function ConsultationPage() {
                     <div className="flex justify-between"><span>Session:</span><span className="font-medium">{selectedService?.name}</span></div>
                     <div className="flex justify-between"><span>Date:</span><span className="font-medium">{selectedDate ? format(selectedDate, "MMM do, yyyy") : ""}</span></div>
                     <div className="flex justify-between"><span>Time:</span><span className="font-medium">{selectedTime}</span></div>
+                    <div className="flex justify-between"><span>Timezone:</span><span className="font-medium text-xs">{TIMEZONES.flatMap(g => g.zones).find(z => z.value === selectedTimezone)?.label || selectedTimezone}</span></div>
                     <div className="flex justify-between text-lg font-bold pt-2 border-t"><span>Total:</span><span className="text-secondary">${selectedService?.price}</span></div>
                   </div>
                 </Card>
@@ -251,6 +347,26 @@ export default function ConsultationPage() {
                       <div><Label htmlFor="lastName" className="text-xs">Last Name</Label><Input id="lastName" name="lastName" required className="h-8 text-sm" /></div>
                     </div>
                     <div><Label htmlFor="email" className="text-xs">Email</Label><Input id="email" name="email" type="email" required className="h-8 text-sm" /></div>
+                    <div>
+                      <Label className="text-xs flex items-center gap-1"><Globe className="h-3 w-3" />Your Timezone</Label>
+                      <Select value={selectedTimezone} onValueChange={setSelectedTimezone}>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {TIMEZONES.map((group) => (
+                            <div key={group.group}>
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">{group.group}</div>
+                              {group.zones.map((tz) => (
+                                <SelectItem key={tz.value} value={tz.value} className="text-sm">
+                                  {tz.label}
+                                </SelectItem>
+                              ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div><Label htmlFor="message" className="text-xs">Notes (optional)</Label><Textarea id="message" name="message" className="h-16 text-sm resize-none" placeholder="Anything you'd like to share?" /></div>
                   </div>
                 </Card>
