@@ -154,10 +154,8 @@ function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
       >
         <div className="group cursor-pointer">
           <div className="relative aspect-square overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-white/30 transition-colors duration-200">
-            {/* Placeholder */}
-            {!isLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10 animate-pulse" />
-            )}
+            {/* Placeholder - shows behind image while loading */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10" />
             
             {/* Image */}
             <img
@@ -166,12 +164,7 @@ function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
               loading="lazy"
               decoding="async"
               onLoad={onLoad}
-              className={`
-                w-full h-full object-cover
-                transition-all duration-300 ease-out
-                group-hover:scale-105
-                ${isLoaded ? 'opacity-100' : 'opacity-0'}
-              `}
+              className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
             />
             
             {/* Hover overlay */}
