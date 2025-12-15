@@ -79,54 +79,56 @@ export function GalleryGrid({ images }: GalleryGridProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-12">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="h-10 w-10 rounded-full text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-30"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
+        <div className="mt-12 p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="h-12 w-12 rounded-full bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:hover:bg-white/10"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
 
-          <div className="flex items-center gap-1">
-            {getPageNumbers().map((page, i) => (
-              typeof page === 'number' ? (
-                <Button
-                  key={i}
-                  variant="ghost"
-                  onClick={() => goToPage(page)}
-                  className={`h-10 w-10 rounded-full text-sm font-medium transition-all ${
-                    currentPage === page
-                      ? 'bg-primary text-white hover:bg-primary/90'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  {page}
-                </Button>
-              ) : (
-                <span key={i} className="px-2 text-white/40">...</span>
-              )
-            ))}
+            <div className="flex items-center gap-2">
+              {getPageNumbers().map((page, i) => (
+                typeof page === 'number' ? (
+                  <Button
+                    key={i}
+                    variant={currentPage === page ? "default" : "outline"}
+                    onClick={() => goToPage(page)}
+                    className={`h-12 w-12 rounded-full text-base font-semibold transition-all ${
+                      currentPage === page
+                        ? 'bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/30'
+                        : 'bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white'
+                    }`}
+                  >
+                    {page}
+                  </Button>
+                ) : (
+                  <span key={i} className="px-2 text-white/60 text-lg">...</span>
+                )
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="h-12 w-12 rounded-full bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white disabled:opacity-30 disabled:hover:bg-white/10"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="h-10 w-10 rounded-full text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-30"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+          {/* Page info */}
+          <p className="text-center text-white/70 text-sm mt-4 font-medium">
+            Page {currentPage} of {totalPages} • {images.length} photos total
+          </p>
         </div>
       )}
-
-      {/* Page info */}
-      <p className="text-center text-white/40 text-sm mt-4">
-        Page {currentPage} of {totalPages} • {images.length} photos
-      </p>
     </div>
   )
 }
