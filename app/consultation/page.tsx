@@ -177,7 +177,12 @@ const TIMEZONES = [
 export default function ConsultationPage() {
   const [step, setStep] = useState(1)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  // Initialize with today's date
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return today
+  })
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedTimezone, setSelectedTimezone] = useState<string>("America/New_York")
   const [bookedSlots, setBookedSlots] = useState<string[]>([])
