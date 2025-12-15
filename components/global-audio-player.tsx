@@ -15,13 +15,17 @@ export function GlobalAudioPlayer() {
     const musicPages = ['/music']
     const shouldDisableMusic = musicPages.some(page => pathname.startsWith(page))
 
-    if (shouldDisableMusic) {
-      // CHANGE THIS
+    // Check if user has muted audio
+    const savedMuteState = typeof window !== 'undefined' 
+      ? localStorage.getItem("fiz-audio-muted") 
+      : null;
+    const isMuted = savedMuteState ? JSON.parse(savedMuteState) : true;
+
+    if (shouldDisableMusic || isMuted) {
       seamlessAudioManager.fadeOut(500)
     } else {
       // Add a small delay to prevent immediate restart when navigating
       const timer = setTimeout(() => {
-        // CHANGE THIS
         seamlessAudioManager.fadeIn(1000)
       }, 200)
       

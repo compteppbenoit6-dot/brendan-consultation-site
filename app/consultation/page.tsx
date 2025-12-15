@@ -110,7 +110,8 @@ export default function ConsultationPage() {
     if (selectedDate) {
       setIsLoadingSlots(true);
       setSelectedTime(null);
-      startTransition(async () => {
+      
+      const fetchSlots = async () => {
         try {
           const slots = await getBookedSlots(selectedDate);
           setBookedSlots(slots);
@@ -119,7 +120,9 @@ export default function ConsultationPage() {
         } finally {
           setIsLoadingSlots(false);
         }
-      });
+      };
+      
+      fetchSlots();
     } else {
       setBookedSlots([]);
       setSelectedTime(null);

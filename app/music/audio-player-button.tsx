@@ -15,10 +15,12 @@ export function AudioPlayerButton({ src, variant, className, ...props }: AudioPl
 
   useEffect(() => {
     // Cleanup function to pause and remove audio when component unmounts
+    const audio = audioRef.current;
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
+      if (audio) {
+        audio.pause();
+        audio.src = '';
+        audioRef.current = null;
       }
     }
   }, [])

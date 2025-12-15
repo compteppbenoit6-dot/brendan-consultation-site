@@ -16,22 +16,23 @@ export function MuteButton() {
     const initialMuteState = savedMuteState ? JSON.parse(savedMuteState) : true;
     setIsMuted(initialMuteState);
     
+    // Don't auto-play on load - wait for user interaction
     if (initialMuteState) {
-      seamlessAudioManager.setVolume(0);
-    } else {
-      seamlessAudioManager.setVolume(0.25); // Default volume
+      seamlessAudioManager.stop();
     }
   }, []);
 
-  const toggleMute = () => {
+  const toggleMute = async () => {
     const newMuteState = !isMuted;
     setIsMuted(newMuteState);
     localStorage.setItem("fiz-audio-muted", JSON.stringify(newMuteState));
     
     if (newMuteState) {
-      seamlessAudioManager.setVolume(0);
+      seamlessAudioManager.fadeOut(300);
     } else {
-      seamlessAudioManager.setVolume(0.25); // Restore volume
+      // Ensure user interaction enables audio context
+      await seamlessAudioManager.enableUserInteraction();
+      seamlessAudioManager.fadeIn(300);
     }
   };
 

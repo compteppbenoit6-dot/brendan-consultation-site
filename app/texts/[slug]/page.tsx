@@ -14,9 +14,10 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function TextPost({ params }: { params: { slug: string } }) {
+export default async function TextPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const post = await prisma.textPost.findUnique({
-    where: { slug: params.slug }
+    where: { slug }
   });
 
   if (!post) {

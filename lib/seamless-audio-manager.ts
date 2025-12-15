@@ -55,8 +55,6 @@ class AdvancedSeamlessAudioManager {
     }
 
     const currentTime = this.audioContext.currentTime;
-    
-    this.sources = this.sources.filter(source => source.playbackState !== source.FINISHED_STATE);
 
     while (this.nextStartTime < currentTime + this.scheduleAheadTime) {
       const source = this.audioContext.createBufferSource();
@@ -64,6 +62,15 @@ class AdvancedSeamlessAudioManager {
       source.connect(this.gainNode);
       source.start(this.nextStartTime);
       source.stop(this.nextStartTime + this.audioBuffer.duration);
+      
+      // Clean up source when it ends
+      source.onended = () => {
+        const index = this.sources.indexOf(source);
+        if (index > -1) {
+          this.sources.splice(index, 1);
+        }
+      };
+      
       this.sources.push(source);
       this.nextStartTime += this.audioBuffer.duration - this.crossfadeDuration;
     }

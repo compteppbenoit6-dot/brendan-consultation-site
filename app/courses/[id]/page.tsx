@@ -5,10 +5,11 @@ import { notFound } from "next/navigation";
 import { CourseClientPage } from "../course-client-page"; // Import the new client component
 
 // This is the main component for the page. It is a SERVER component.
-export default async function CourseDetailPage({ params }: { params: { id: string } }) {
+export default async function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // This prisma call runs ONLY on the server.
   const course = await prisma.course.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       videos: {
         orderBy: {
