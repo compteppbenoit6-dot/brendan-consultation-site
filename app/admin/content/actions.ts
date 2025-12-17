@@ -25,11 +25,28 @@ export async function updateContentBlocks(prevState: any, formData: FormData) {
     revalidatePath("/music");
     revalidatePath("/gallery");
     revalidatePath("/texts");
+    revalidatePath("/courses");
     revalidatePath("/admin/content");
 
     return { success: "Content updated successfully!" };
   } catch (error) {
     console.error("Failed to update content:", error);
     return { error: "Database error: Could not update content." };
+  }
+}
+
+
+export async function ensureContentBlocks() {
+  const defaultBlocks = [
+    { key: 'courses_title', value: 'Courses' },
+    { key: 'courses_subtitle', value: 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.' },
+  ];
+
+  for (const block of defaultBlocks) {
+    await prisma.contentBlock.upsert({
+      where: { key: block.key },
+      update: {},
+      create: block,
+    });
   }
 }

@@ -3,8 +3,12 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
 import { ContentForm } from "./content-form"
+import { ensureContentBlocks } from "./actions"
 
 export default async function AdminContentPage() {
+  // Ensure all content blocks exist
+  await ensureContentBlocks();
+  
   const contentBlocks = await prisma.contentBlock.findMany({
     orderBy: { key: 'asc' }
   });

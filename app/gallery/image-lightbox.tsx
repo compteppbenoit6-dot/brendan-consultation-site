@@ -87,8 +87,11 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onNavigat
   if (!currentImage) return null
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); setIsLoading(true); setIsZoomed(false) }}>
-      <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] bg-black border-none p-0 overflow-hidden rounded-none">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); setIsZoomed(false) }}>
+      <DialogContent 
+        showCloseButton={false}
+        className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] !bg-black border-none p-0 overflow-hidden rounded-none"
+      >
         <DialogTitle className="sr-only">{currentImage.title || 'Full-size Image'}</DialogTitle>
         <DialogDescription className="sr-only">
           {currentImage.description || `Full-size view of the image titled: ${currentImage.title || currentImage.alt}`}
@@ -166,12 +169,12 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onNavigat
             </div>
           )}
           <img
+            key={currentImage.id}
             src={currentImage.src}
             alt={currentImage.alt || 'Gallery image'}
             className={`
               ${isZoomed ? 'max-w-none w-auto' : 'w-full h-full max-w-[95vw] max-h-[95vh]'} 
               object-contain transition-all duration-300 ease-out
-              ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
             `}
             style={isZoomed ? { minWidth: '150%' } : {}}
             onLoad={() => setIsLoading(false)}

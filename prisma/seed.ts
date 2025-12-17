@@ -53,6 +53,8 @@ async function main() {
       { key: 'gallery_subtitle', value: 'Visual moments from the journey. Life through my lens, beats through my soul.' },
       { key: 'texts_title', value: 'Text Gallery' },
       { key: 'texts_subtitle', value: 'Raw thoughts, real stories. Words straight from the soul of a Pittsburgh beat maker.' },
+      { key: 'courses_title', value: 'Courses' },
+      { key: 'courses_subtitle', value: 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.' },
       { key: 'footer_email', value: 'brendan89890@yahoo.com' },
       { key: 'footer_youtube_url', value: 'https://www.youtube.com/@snapcracklefizzle9954' },
     ],

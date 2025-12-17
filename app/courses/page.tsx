@@ -8,9 +8,14 @@ import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 
 export default async function CoursesPage() {
-  const courses = await prisma.course.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const [courses, contentBlocks] = await Promise.all([
+    prisma.course.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.contentBlock.findMany({ where: { key: { in: ['courses_title', 'courses_subtitle'] } } })
+  ]);
+
+  const content = Object.fromEntries(contentBlocks.map(b => [b.key, b.value]));
+  const title = content.courses_title || 'Courses';
+  const subtitle = content.courses_subtitle || 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.';
 
   return (
     // --- MODIFICATION: Removed the background class ---
@@ -22,11 +27,9 @@ export default async function CoursesPage() {
         <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <GraduationCap className="h-12 w-12 text-primary" />
         </div>
-        {/* --- MODIFICATION: Added text-white and drop-shadow for readability --- */}
-        <h1 className="font-serif font-black text-4xl md:text-6xl text-white drop-shadow-md mb-4">Courses</h1>
-        {/* --- MODIFICATION: Changed text color and added drop-shadow --- */}
+        <h1 className="font-serif font-black text-4xl md:text-6xl text-white drop-shadow-md mb-4">{title}</h1>
         <p className="text-lg text-neutral-200 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-          Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.
+          {subtitle}
         </p>
       </div>
 
