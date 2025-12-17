@@ -60,8 +60,8 @@ export function GalleryGrid({ images }: GalleryGridProps) {
 
   return (
     <div>
-      {/* Masonry Grid - 3 cols mobile, 4 cols tablet, 5 cols desktop */}
-      <div className="columns-3 sm:columns-4 lg:columns-5 xl:columns-6 gap-2 sm:gap-3">
+      {/* Grid - 2 columns max */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {currentImages.map((image, index) => (
           <GalleryItem
             key={image.id}
@@ -137,7 +137,7 @@ interface GalleryItemProps {
 function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
   return (
     <div 
-      className="mb-2 sm:mb-3 break-inside-avoid animate-in fade-in duration-300"
+      className="animate-in fade-in duration-300"
       style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'both' }}
     >
       <ImageLightbox 

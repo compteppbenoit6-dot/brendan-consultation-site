@@ -45,7 +45,7 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
   return (
     <Dialog onOpenChange={() => { setIsLoading(true); setIsZoomed(false) }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto bg-black/95 border-white/10 p-0 overflow-hidden">
+      <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] bg-black border-none p-0 overflow-hidden rounded-none">
         <DialogTitle className="sr-only">{title || 'Full-size Image'}</DialogTitle>
         <DialogDescription className="sr-only">
           {description || `Full-size view of the image titled: ${title || alt}`}
@@ -95,7 +95,7 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
             src={src}
             alt={alt}
             className={`
-              ${isZoomed ? 'max-w-none w-auto' : 'max-w-full max-h-[85vh]'} 
+              ${isZoomed ? 'max-w-none w-auto' : 'w-full h-full max-w-[95vw] max-h-[95vh]'} 
               object-contain transition-all duration-300 ease-out
               ${isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
             `}
