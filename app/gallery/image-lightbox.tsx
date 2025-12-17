@@ -122,10 +122,10 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onNavigat
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
+              className="h-11 w-11 sm:h-12 sm:w-12 bg-black/50 hover:bg-black/70 text-white hover:text-white rounded-full border border-white/30"
               onClick={onClose}
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6 sm:h-7 sm:w-7" />
             </Button>
           </div>
         </div>
@@ -135,20 +135,20 @@ export function ImageLightbox({ images, currentIndex, isOpen, onClose, onNavigat
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
-            onClick={goToPrev}
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-14 w-14 sm:h-16 sm:w-16 bg-black/50 hover:bg-black/70 text-white hover:text-white rounded-full border border-white/30"
+            onClick={(e) => { e.stopPropagation(); goToPrev(); }}
           >
-            <ChevronLeft className="h-8 w-8" />
+            <ChevronLeft className="h-10 w-10 sm:h-12 sm:w-12" />
           </Button>
         )}
         {hasNext && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
-            onClick={goToNext}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-14 w-14 sm:h-16 sm:w-16 bg-black/50 hover:bg-black/70 text-white hover:text-white rounded-full border border-white/30"
+            onClick={(e) => { e.stopPropagation(); goToNext(); }}
           >
-            <ChevronRight className="h-8 w-8" />
+            <ChevronRight className="h-10 w-10 sm:h-12 sm:w-12" />
           </Button>
         )}
         
