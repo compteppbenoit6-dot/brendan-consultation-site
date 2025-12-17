@@ -25,6 +25,8 @@ const IMAGES_PER_PAGE = 24
 export function GalleryGrid({ images }: GalleryGridProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
 
   const totalPages = Math.ceil(images.length / IMAGES_PER_PAGE)
   
@@ -36,6 +38,13 @@ export function GalleryGrid({ images }: GalleryGridProps) {
   const handleImageLoad = useCallback((id: string) => {
     setLoadedImages((prev) => new Set(prev).add(id))
   }, [])
+
+  const openLightbox = (index: number) => {
+    // Calculate global index from page-relative index
+    const globalIndex = (currentPage - 1) * IMAGES_PER_PAGE + index
+    setLightboxIndex(globalIndex)
+    setLightboxOpen(true)
+  }
 
   const goToPage = (page: number) => {
     setCurrentPage(page)
@@ -69,6 +78,7 @@ export function GalleryGrid({ images }: GalleryGridProps) {
             index={index}
             isLoaded={loadedImages.has(image.id)}
             onLoad={() => handleImageLoad(image.id)}
+            onClick={() => openLightbox(index)}
           />
         ))}
       </div>
@@ -123,6 +133,15 @@ export function GalleryGrid({ images }: GalleryGridProps) {
           </p>
         </div>
       )}
+
+      {/* Lightbox - shared across all images */}
+      <ImageLightbox
+        images={images}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+      />
     </div>
   )
 }
@@ -132,53 +151,47 @@ interface GalleryItemProps {
   index: number
   isLoaded: boolean
   onLoad: () => void
+  onClick: () => void
 }
 
-function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
+function GalleryItem({ image, index, isLoaded, onLoad, onClick }: GalleryItemProps) {
   return (
     <div 
       className="animate-in fade-in duration-300"
       style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'both' }}
     >
-      <ImageLightbox 
-        src={image.src} 
-        alt={image.alt || 'Gallery image'} 
-        title={image.title}
-        description={image.description}
-      >
-        <div className="group cursor-pointer">
-          <div className="relative overflow-hidden rounded-lg bg-white/5 ring-1 ring-white/10 hover:ring-white/30 hover:ring-2 transition-all duration-200">
-            {/* Image thumbnail */}
-            <img
-              src={image.src}
-              alt={image.alt || 'Gallery image'}
-              loading="lazy"
-              decoding="async"
-              onLoad={onLoad}
-              className={`w-full h-auto block transition-all duration-300 ease-out group-hover:scale-110 group-hover:brightness-110 ${
-                isLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-            
-            {/* Loading placeholder */}
-            {!isLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 animate-pulse" />
-            )}
-            
-            {/* Subtle hover overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
-            
-            {/* Expand indicator on hover */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
-                <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                </svg>
-              </div>
+      <div className="group cursor-pointer" onClick={onClick}>
+        <div className="relative overflow-hidden rounded-lg bg-white/5 ring-1 ring-white/10 hover:ring-white/30 hover:ring-2 transition-all duration-200">
+          {/* Image thumbnail */}
+          <img
+            src={image.src}
+            alt={image.alt || 'Gallery image'}
+            loading="lazy"
+            decoding="async"
+            onLoad={onLoad}
+            className={`w-full h-auto block transition-all duration-300 ease-out group-hover:scale-110 group-hover:brightness-110 ${
+              isLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          
+          {/* Loading placeholder */}
+          {!isLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 animate-pulse" />
+          )}
+          
+          {/* Subtle hover overlay */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+          
+          {/* Expand indicator on hover */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-200">
+              <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+              </svg>
             </div>
           </div>
         </div>
-      </ImageLightbox>
+      </div>
     </div>
   )
 }

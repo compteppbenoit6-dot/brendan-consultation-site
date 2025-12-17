@@ -2,37 +2,79 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { 
   Dialog, 
-  DialogContent, 
-  DialogTrigger,
+  DialogContent,
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { X, Loader2, Download, ZoomIn, ZoomOut } from "lucide-react"
+import { X, Loader2, Download, ZoomIn, ZoomOut, ChevronLeft, ChevronRight } from "lucide-react"
 
-interface ImageLightboxProps {
+interface Image {
+  id: string
   src: string
-  alt: string
-  title?: string | null
-  description?: string | null
-  children: React.ReactNode
+  alt: string | null
+  title: string | null
+  description: string | null
 }
 
-export function ImageLightbox({ src, alt, title, description, children }: ImageLightboxProps) {
+interface ImageLightboxProps {
+  images: Image[]
+  currentIndex: number
+  isOpen: boolean
+  onClose: () => void
+  onNavigate: (index: number) => void
+}
+
+export function ImageLightbox({ images, currentIndex, isOpen, onClose, onNavigate }: ImageLightboxProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isZoomed, setIsZoomed] = useState(false)
 
+  const currentImage = images[currentIndex]
+  const hasPrev = currentIndex > 0
+  const hasNext = currentIndex < images.length - 1
+
+  const goToPrev = useCallback(() => {
+    if (hasPrev) {
+      setIsLoading(true)
+      setIsZoomed(false)
+      onNavigate(currentIndex - 1)
+    }
+  }, [hasPrev, currentIndex, onNavigate])
+
+  const goToNext = useCallback(() => {
+    if (hasNext) {
+      setIsLoading(true)
+      setIsZoomed(false)
+      onNavigate(currentIndex + 1)
+    }
+  }, [hasNext, currentIndex, onNavigate])
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') goToPrev()
+      else if (e.key === 'ArrowRight') goToNext()
+      else if (e.key === 'Escape') onClose()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, goToPrev, goToNext, onClose])
+
   const handleDownload = async () => {
+    if (!currentImage) return
     try {
-      const response = await fetch(src)
+      const response = await fetch(currentImage.src)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = title || 'image'
+      a.download = currentImage.title || 'image'
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -42,21 +84,23 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
     }
   }
 
+  if (!currentImage) return null
+
   return (
-    <Dialog onOpenChange={() => { setIsLoading(true); setIsZoomed(false) }}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); setIsLoading(true); setIsZoomed(false) }}>
       <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] bg-black border-none p-0 overflow-hidden rounded-none">
-        <DialogTitle className="sr-only">{title || 'Full-size Image'}</DialogTitle>
+        <DialogTitle className="sr-only">{currentImage.title || 'Full-size Image'}</DialogTitle>
         <DialogDescription className="sr-only">
-          {description || `Full-size view of the image titled: ${title || alt}`}
+          {currentImage.description || `Full-size view of the image titled: ${currentImage.title || currentImage.alt}`}
         </DialogDescription>
         
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
           <div className="flex-1">
-            {title && (
-              <h3 className="text-white font-medium truncate max-w-md">{title}</h3>
+            {currentImage.title && (
+              <h3 className="text-white font-medium truncate max-w-md">{currentImage.title}</h3>
             )}
+            <span className="text-white/50 text-sm">{currentIndex + 1} / {images.length}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -75,8 +119,38 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
             >
               <Download className="h-5 w-5" />
             </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
+              onClick={onClose}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
         </div>
+
+        {/* Navigation arrows */}
+        {hasPrev && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
+            onClick={goToPrev}
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+        )}
+        {hasNext && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 text-white/70 hover:text-white hover:bg-white/10 rounded-full"
+            onClick={goToNext}
+          >
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+        )}
         
         {/* Image container */}
         <div 
@@ -92,8 +166,8 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
             </div>
           )}
           <img
-            src={src}
-            alt={alt}
+            src={currentImage.src}
+            alt={currentImage.alt || 'Gallery image'}
             className={`
               ${isZoomed ? 'max-w-none w-auto' : 'w-full h-full max-w-[95vw] max-h-[95vh]'} 
               object-contain transition-all duration-300 ease-out
@@ -105,10 +179,10 @@ export function ImageLightbox({ src, alt, title, description, children }: ImageL
         </div>
         
         {/* Bottom bar with description */}
-        {description && (
+        {currentImage.description && (
           <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/80 to-transparent">
             <p className="text-white/80 text-sm text-center max-w-2xl mx-auto line-clamp-2">
-              {description}
+              {currentImage.description}
             </p>
           </div>
         )}
