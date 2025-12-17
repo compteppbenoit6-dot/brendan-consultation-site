@@ -29,10 +29,17 @@ const sourceSans3 = Source_Sans_3({
   weight: ["400", "600", "700"],
 })
 
-export const metadata: Metadata = {
-  title: "Fiz - Freestyle & Beats",
-  description: "Pittsburgh's finest freestyle rapper and beat maker. Real music for the world.",
-  generator: "v0.app",
+export async function generateMetadata(): Promise<Metadata> {
+  const contentBlocks = await prisma.contentBlock.findMany({
+    where: { key: { in: ['seo_title', 'seo_description'] } }
+  });
+  const content = Object.fromEntries(contentBlocks.map(b => [b.key, b.value]));
+  
+  return {
+    title: content.seo_title || "Fiz - Freestyle & Beats",
+    description: content.seo_description || "Pittsburgh's finest freestyle rapper and beat maker. Real music for the world.",
+    generator: "v0.app",
+  };
 }
 
 export default async function RootLayout({

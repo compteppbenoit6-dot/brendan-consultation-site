@@ -1,11 +1,23 @@
 // File: app/gallery/page.tsx
 
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Camera, Sparkles } from "lucide-react"
 import prisma from "@/lib/prisma"
 import { GalleryGrid } from "./gallery-grid"
 import { getContent } from "@/lib/content"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const blocks = await prisma.contentBlock.findMany({
+    where: { key: { in: ['seo_gallery_title', 'seo_gallery_description'] } }
+  });
+  const content = Object.fromEntries(blocks.map(b => [b.key, b.value]));
+  return {
+    title: content.seo_gallery_title || "Gallery | Fiz",
+    description: content.seo_gallery_description || "Visual moments from the journey of Fiz.",
+  };
+}
 
 export default async function GalleryPage() {
   const images = await prisma.image.findMany({

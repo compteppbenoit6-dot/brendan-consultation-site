@@ -1,11 +1,23 @@
 // File: app/texts/page.tsx
 
+import type { Metadata } from "next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, ArrowRight, Calendar } from "lucide-react"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { getContent } from "@/lib/content"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const blocks = await prisma.contentBlock.findMany({
+    where: { key: { in: ['seo_texts_title', 'seo_texts_description'] } }
+  });
+  const content = Object.fromEntries(blocks.map(b => [b.key, b.value]));
+  return {
+    title: content.seo_texts_title || "Texts | Fiz",
+    description: content.seo_texts_description || "Raw thoughts and real stories from Fiz.",
+  };
+}
 
 export default async function TextsPage() {
   const texts = await prisma.textPost.findMany({

@@ -40,6 +40,20 @@ export async function ensureContentBlocks() {
   const defaultBlocks = [
     { key: 'courses_title', value: 'Courses' },
     { key: 'courses_subtitle', value: 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.' },
+    // Global SEO
+    { key: 'seo_title', value: 'Fiz - Freestyle & Beats' },
+    { key: 'seo_description', value: "Pittsburgh's finest freestyle rapper and beat maker. Real music for the world." },
+    // Page-specific SEO
+    { key: 'seo_music_title', value: 'Music | Fiz' },
+    { key: 'seo_music_description', value: 'Listen to beats, freestyles, and tracks from Fiz - Pittsburgh freestyle rapper and beat maker.' },
+    { key: 'seo_gallery_title', value: 'Gallery | Fiz' },
+    { key: 'seo_gallery_description', value: 'Visual moments from the journey of Fiz - Pittsburgh freestyle rapper and beat maker.' },
+    { key: 'seo_texts_title', value: 'Texts | Fiz' },
+    { key: 'seo_texts_description', value: 'Raw thoughts and real stories from Fiz - Pittsburgh freestyle rapper and beat maker.' },
+    { key: 'seo_courses_title', value: 'Courses | Fiz' },
+    { key: 'seo_courses_description', value: 'Learn beatmaking and freestyle techniques from Fiz.' },
+    { key: 'seo_consultation_title', value: 'Spiritual Sessions | Fiz' },
+    { key: 'seo_consultation_description', value: 'Book a spiritual consultation session with Fiz.' },
   ];
 
   for (const block of defaultBlocks) {

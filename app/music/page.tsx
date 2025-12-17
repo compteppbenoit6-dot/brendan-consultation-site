@@ -1,5 +1,6 @@
 // File: app/music/page.tsx
 
+import type { Metadata } from "next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Music, Play, ExternalLink, Instagram, Video, Headphones } from "lucide-react"
@@ -7,6 +8,17 @@ import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { AudioPlayerButton } from "./audio-player-button"
 import { getContent } from "@/lib/content"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const blocks = await prisma.contentBlock.findMany({
+    where: { key: { in: ['seo_music_title', 'seo_music_description'] } }
+  });
+  const content = Object.fromEntries(blocks.map(b => [b.key, b.value]));
+  return {
+    title: content.seo_music_title || "Music | Fiz",
+    description: content.seo_music_description || "Listen to beats, freestyles, and tracks from Fiz.",
+  };
+}
 
 export default async function MusicPage() {
   const allTracks = await prisma.musicTrack.findMany({
