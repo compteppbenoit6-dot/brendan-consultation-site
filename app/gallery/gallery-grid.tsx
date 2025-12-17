@@ -64,8 +64,8 @@ export function GalleryGrid({ images }: GalleryGridProps) {
 
   return (
     <div>
-      {/* Image Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+      {/* Image Grid - Full width on mobile, masonry-style on larger screens */}
+      <div className="flex flex-col gap-4 md:columns-2 lg:columns-3 md:block md:gap-0 md:space-y-0 [&>*]:md:mb-4">
         {currentImages.map((image, index) => (
           <GalleryItem
             key={image.id}
@@ -143,7 +143,7 @@ interface GalleryItemProps {
 function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
   return (
     <div 
-      className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+      className="animate-in fade-in slide-in-from-bottom-4 duration-500 md:break-inside-avoid"
       style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
     >
       <ImageLightbox 
@@ -153,18 +153,18 @@ function GalleryItem({ image, index, isLoaded, onLoad }: GalleryItemProps) {
         description={image.description}
       >
         <div className="group cursor-pointer">
-          <div className="relative aspect-square overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-white/30 transition-colors duration-200">
+          <div className="relative overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-white/30 transition-colors duration-200">
             {/* Placeholder - shows behind image while loading */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/10" />
             
-            {/* Image */}
+            {/* Image - natural aspect ratio */}
             <img
               src={image.src}
               alt={image.alt || 'Gallery image'}
               loading="lazy"
               decoding="async"
               onLoad={onLoad}
-              className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+              className="w-full h-auto block transition-transform duration-300 ease-out group-hover:scale-105"
             />
             
             {/* Hover overlay */}
