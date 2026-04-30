@@ -160,11 +160,12 @@ export default async function HomePage() {
       <section className="px-4 pb-12 md:pb-20">
         <div className="mx-auto max-w-6xl">
           {/*
-            Flex-wrap with justify-start so tiles flow left-to-right.
+            Flex-wrap with justify-center so partial rows are centered (so
+            4 tiles at colSpan=1 don't sit awkwardly on the left).
             Per-tile widths come from TILE_WIDTH_CLASS and are calc'd to leave
             room for a 1rem gap between siblings.
           */}
-          <div className="flex flex-wrap justify-start gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {settings?.showPictureSection && (
               <SectionCard
                 href="/gallery"

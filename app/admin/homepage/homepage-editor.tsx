@@ -145,7 +145,7 @@ export function HomepageEditor({
             )}
           </div>
           <div className="p-4 sm:p-6 lg:p-8" style={previewBg}>
-            <div className="flex flex-wrap justify-start gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               {ORDERED_KEYS.map((key) => (
                 <PreviewTile
                   key={key}
