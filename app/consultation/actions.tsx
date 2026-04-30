@@ -6,8 +6,11 @@ import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { Resend } from 'resend';
+import { Prisma } from "@prisma/client"
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const FALLBACK_NOTIFICATION_EMAIL = "brendan89890@yahoo.com";
 
 const BookingSchema = z.object({
   serviceId: z.string(),
@@ -69,25 +72,25 @@ export async function createAppointment(formData: FormData) {
     const appointmentDate = new Date(date);
     appointmentDate.setHours(hours, minutes, 0, 0);
 
-    const existingAppointment = await prisma.appointment.findFirst({
-      where: { dateTime: appointmentDate },
-    });
-
-    if (existingAppointment) {
-      return { error: "This time slot has just been booked. Please select another." };
+    try {
+      await prisma.appointment.create({
+        data: {
+          dateTime: appointmentDate,
+          serviceName: serviceName,
+          servicePrice: servicePrice,
+          clientName: `${firstName} ${lastName}`,
+          clientEmail: email,
+          clientNotes: message || "",
+          clientTimezone: timezone,
+        },
+      });
+    } catch (err) {
+      // Prisma raises P2002 when the unique constraint on dateTime is violated.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        return { error: "This time slot has just been booked. Please select another." };
+      }
+      throw err;
     }
-
-    await prisma.appointment.create({
-      data: {
-        dateTime: appointmentDate,
-        serviceName: serviceName,
-        servicePrice: servicePrice,
-        clientName: `${firstName} ${lastName}`,
-        clientEmail: email,
-        clientNotes: message || "",
-        clientTimezone: timezone,
-      },
-    });
 
     // This is a pre-rendered HTML string. To update the design,
     // run `pnpm email`, edit the component in `emails/AppointmentNotification.tsx`,
@@ -126,9 +129,14 @@ export async function createAppointment(formData: FormData) {
     }
 
     try {
+      const recipientBlock = await prisma.contentBlock.findUnique({
+        where: { key: "notification_email" },
+      });
+      const recipient = recipientBlock?.value?.trim() || FALLBACK_NOTIFICATION_EMAIL;
+
       await resend.emails.send({
         from: 'Fiz Website <noreply@fiz.guru>',
-        to: 'brendan89890@yahoo.com',
+        to: recipient,
         subject: `New Spiritual Session Booking: ${serviceName}`,
         html: emailHtml,
       });

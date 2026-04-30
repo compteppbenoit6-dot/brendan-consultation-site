@@ -1,32 +1,42 @@
 // File: components/footer.tsx
 
-import { Mail, Youtube } from "lucide-react";
-import { getContent } from "@/lib/content";
+import { Mail, Youtube } from "lucide-react"
+import { getContent } from "@/lib/content"
 
 export async function Footer() {
-  const content = await getContent();
-  const email = content.footer_email;
-  const youtubeUrl = content.footer_youtube_url;
+  const content = await getContent()
+  const email = content.footer_email
+  const youtubeUrl = content.footer_youtube_url
 
   return (
-    <footer className="w-full py-6 px-4 md:px-6 border-t bg-background">
-      <div className="container mx-auto flex flex-col md:flex-row items-center justify-center gap-4 text-center md:justify-between">
-        <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} FIZ. All Rights Reserved.</p>
-        <div className="flex items-center gap-4">
+    <footer className="w-full border-t border-border/60 bg-background/80 px-4 py-6 backdrop-blur-sm md:px-6">
+      <div className="container mx-auto flex flex-col items-center justify-center gap-3 text-center md:flex-row md:justify-between">
+        <p className="text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} <span className="font-serif font-bold tracking-wider">FIZ</span>. All rights reserved.
+        </p>
+        <div className="flex items-center gap-3">
           {email && (
-            <a href={`mailto:${email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Mail className="h-4 w-4" />
+            <a
+              href={`mailto:${email}`}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+            >
+              <Mail className="h-3.5 w-3.5" />
               <span>{email}</span>
             </a>
           )}
           {youtubeUrl && (
-            <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Youtube className="h-4 w-4" />
+            <a
+              href={youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+            >
+              <Youtube className="h-3.5 w-3.5" />
               <span>YouTube</span>
             </a>
           )}
         </div>
       </div>
     </footer>
-  );
+  )
 }

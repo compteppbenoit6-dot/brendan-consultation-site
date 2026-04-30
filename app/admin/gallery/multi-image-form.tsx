@@ -68,7 +68,7 @@ export function MultiImageForm({ onSuccess }: MultiImageFormProps) {
         const presignResponse = await fetch('/api/images/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, contentType: file.type }),
+          body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
         });
 
         if (!presignResponse.ok) {

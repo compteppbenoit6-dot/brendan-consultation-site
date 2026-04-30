@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { toast } from "sonner"
+import { Lock } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -26,25 +27,28 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        toast.error("Login Failed: Invalid credentials.")
+        toast.error("Invalid credentials.")
         setIsLoading(false)
       } else {
-        toast.success("Login Successful!")
+        toast.success("Welcome back.")
         router.push("/admin")
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred.")
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <h1 className="font-serif font-black text-4xl text-foreground">FIZ</h1>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>Enter your credentials to manage the site.</CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <Card className="w-full max-w-sm border-border/60 bg-card/90 backdrop-blur-md animate-fade-up">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Lock className="h-5 w-5" />
+          </div>
+          <h1 className="font-serif font-black text-3xl text-foreground tracking-tight">FIZ</h1>
+          <CardTitle className="text-xl">Admin Login</CardTitle>
+          <CardDescription>Sign in to manage the site.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,11 +57,12 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@fiz.com"
+                placeholder="you@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
@@ -69,10 +74,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                autoComplete="current-password"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </CardContent>

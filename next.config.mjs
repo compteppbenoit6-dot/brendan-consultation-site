@@ -2,13 +2,12 @@
 const nextConfig = {
   experimental: {
     serverActions: {
-      // Increase the maximum body size for file uploads.
-      // '50mb' is a generous limit for multiple high-resolution images.
-      bodySizeLimit: '10000mb',
+      // Cap server-action payloads at ~2 GB to match the largest course video upload.
+      // Direct-to-R2 presigned uploads are the preferred path for large files; this is a safety net.
+      bodySizeLimit: '2gb',
     },
   },
-  
-  // Your existing configurations
+
   eslint: {
     ignoreDuringBuilds: true,
   },

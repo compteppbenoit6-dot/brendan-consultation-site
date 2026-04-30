@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { put, del } from '@vercel/blob';
+import { requireAdmin } from "@/lib/auth-guard"
 
 const SettingsSchema = z.object({
   showMusicSection: z.preprocess((val) => val === "on", z.boolean()),
@@ -17,6 +18,7 @@ const SettingsSchema = z.object({
 
 export async function getSiteSettings() {
   try {
+    await requireAdmin()
     let settings = await prisma.siteSettings.findFirst();
     if (!settings) {
       settings = await prisma.siteSettings.create({ data: {} });
@@ -28,6 +30,7 @@ export async function getSiteSettings() {
 }
 
 export async function updateSiteSettings(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries());
   const validatedFields = SettingsSchema.safeParse(data);
 
@@ -79,6 +82,7 @@ export async function updateSiteSettings(prevState: any, formData: FormData) {
 
 export async function removeBackgroundImage(prevState: any, formData: FormData) {
   try {
+    await requireAdmin()
     const currentSettings = await prisma.siteSettings.findFirst();
     if (!currentSettings) throw new Error("Settings not found.");
 

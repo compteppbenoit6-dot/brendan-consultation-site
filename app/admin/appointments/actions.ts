@@ -4,9 +4,11 @@
 
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function getAppointments() {
   try {
+    await requireAdmin()
     const appointments = await prisma.appointment.findMany({
       orderBy: { dateTime: 'asc' },
     });
@@ -18,6 +20,7 @@ export async function getAppointments() {
 
 export async function deleteAppointment(id: string) {
   try {
+    await requireAdmin()
     await prisma.appointment.delete({ where: { id } });
     revalidatePath("/admin/appointments");
     return { success: "Appointment deleted successfully." };

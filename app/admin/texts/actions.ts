@@ -6,9 +6,11 @@ import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { put } from '@vercel/blob';
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function getPosts() {
   try {
+    await requireAdmin()
     const posts = await prisma.textPost.findMany({
       orderBy: { publishedAt: 'desc' },
     });
@@ -20,6 +22,7 @@ export async function getPosts() {
 
 export async function deleteTextPost(id: string) {
   try {
+    await requireAdmin()
     await prisma.textPost.delete({ where: { id } })
     revalidatePath("/admin/texts")
     revalidatePath("/texts")
@@ -70,6 +73,7 @@ async function generateUniqueSlug(title: string, idToExclude?: string): Promise<
 
 // --- CORRECTED FUNCTION SIGNATURE ---
 export async function upsertTextPost(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries())
   const validatedFields = TextPostSchema.safeParse(data)
 

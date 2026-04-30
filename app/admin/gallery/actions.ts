@@ -5,9 +5,11 @@
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function getImages() {
   try {
+    await requireAdmin()
     const images = await prisma.image.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -28,6 +30,7 @@ const ImageSchema = z.object({
 })
 
 export async function upsertImage(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries())
   const validatedFields = ImageSchema.safeParse(data)
 
@@ -63,6 +66,7 @@ export async function upsertImage(prevState: any, formData: FormData) {
 
 export async function deleteImage(id: string) {
   try {
+    await requireAdmin()
     await prisma.image.delete({
       where: { id },
     })
@@ -81,6 +85,7 @@ export async function deleteMultipleImages(ids: string[]) {
     return { error: "No images selected." };
   }
   try {
+    await requireAdmin()
     await prisma.image.deleteMany({
       where: {
         id: {
@@ -107,6 +112,7 @@ const MultiImageDataSchema = z.object({
 });
 
 export async function createMultipleImages(formData: FormData) {
+  await requireAdmin()
   const imagesJson = formData.get('imagesData') as string;
 
   if (!imagesJson) {

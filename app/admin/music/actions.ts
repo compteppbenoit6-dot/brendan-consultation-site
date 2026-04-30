@@ -6,9 +6,11 @@ import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { put } from '@vercel/blob';
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function getTracks() {
   try {
+    await requireAdmin()
     const tracks = await prisma.musicTrack.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -30,6 +32,7 @@ const MusicTrackSchema = z.object({
 
 // --- CORRECTED FUNCTION SIGNATURE ---
 export async function upsertMusicTrack(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries())
   const validatedFields = MusicTrackSchema.safeParse(data)
 
@@ -76,6 +79,7 @@ export async function upsertMusicTrack(prevState: any, formData: FormData) {
 
 export async function deleteMusicTrack(id: string) {
   try {
+    await requireAdmin()
     await prisma.musicTrack.delete({ where: { id } })
     revalidatePath("/admin/music")
     revalidatePath("/music")
@@ -93,6 +97,7 @@ const MusicMetadataSchema = z.object({
 });
 
 export async function upsertMultipleMusicTracks(formData: FormData) {
+  await requireAdmin()
   const files = formData.getAll('files') as File[];
   const metadataJson = formData.get('metadata') as string;
 

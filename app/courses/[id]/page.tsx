@@ -2,19 +2,15 @@
 
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { CourseClientPage } from "../course-client-page"; // Import the new client component
+import { CourseClientPage } from "../course-client-page";
 
-// This is the main component for the page. It is a SERVER component.
 export default async function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // This prisma call runs ONLY on the server.
   const course = await prisma.course.findUnique({
     where: { id },
     include: {
       videos: {
-        orderBy: {
-          order: 'asc'
-        }
+        orderBy: { order: 'asc' }
       }
     }
   });
@@ -23,6 +19,8 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  // We pass the data we fetched on the server as a prop to the client component.
-  return <CourseClientPage course={course} />;
+  // Never ship the unlock code to the client. Verification happens via a server action.
+  const { unlockCode: _unlockCode, ...safeCourse } = course;
+
+  return <CourseClientPage course={safeCourse} />;
 }

@@ -5,6 +5,7 @@
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { requireAdmin } from "@/lib/auth-guard"
 
 const ServiceSchema = z.object({
   id: z.string().optional(),
@@ -19,6 +20,7 @@ const ServiceSchema = z.object({
 
 export async function getServices() {
   try {
+    await requireAdmin()
     const services = await prisma.service.findMany({
       orderBy: { createdAt: 'asc' },
     });
@@ -30,6 +32,7 @@ export async function getServices() {
 
 // --- CORRECTED FUNCTION SIGNATURE ---
 export async function upsertService(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries())
   const validatedFields = ServiceSchema.safeParse(data)
 
@@ -64,6 +67,7 @@ export async function upsertService(prevState: any, formData: FormData) {
 
 export async function deleteService(id: string) {
   try {
+    await requireAdmin()
     await prisma.service.delete({
       where: { id },
     })

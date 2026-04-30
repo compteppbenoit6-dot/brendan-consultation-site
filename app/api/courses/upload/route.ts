@@ -4,13 +4,17 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  COURSE_CONTENT_TYPES,
+  MAX_COURSE_FILE_SIZE_BYTES,
+  isAllowedContentType,
+  isValidSize,
+  sanitizeFilename,
+} from '@/lib/upload';
 
-// This S3 client is configured to talk to your Cloudflare R2 bucket
 const s3Client = new S3Client({
   region: 'auto',
-  // --- THIS IS THE CORRECTED LINE ---
   endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  // --- END OF CORRECTION ---
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -23,22 +27,46 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
   }
 
+  let payload: unknown;
   try {
-    const { filename, contentType } = await request.json();
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
 
-    // Generate a unique key for the file to prevent overwrites
-    const uniqueKey = `${Date.now()}-${filename.replace(/\s/g, '_')}`;
+  const { filename, contentType, size } = (payload ?? {}) as {
+    filename?: unknown;
+    contentType?: unknown;
+    size?: unknown;
+  };
+
+  if (!isAllowedContentType(contentType, COURSE_CONTENT_TYPES)) {
+    return NextResponse.json({ error: 'Unsupported file type.' }, { status: 400 });
+  }
+
+  if (!isValidSize(size, MAX_COURSE_FILE_SIZE_BYTES)) {
+    return NextResponse.json(
+      { error: `File too large. Maximum size is ${MAX_COURSE_FILE_SIZE_BYTES / (1024 * 1024 * 1024)}GB.` },
+      { status: 400 }
+    );
+  }
+
+  const safeName = sanitizeFilename(filename);
+  if (!safeName) {
+    return NextResponse.json({ error: 'Invalid filename.' }, { status: 400 });
+  }
+
+  try {
+    const uniqueKey = `${Date.now()}-${safeName}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
       Key: uniqueKey,
       ContentType: contentType,
+      ContentLength: size,
     });
 
-    // Generate a secure, temporary URL for the browser to upload the file to
-    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // URL is valid for 1 hour
-
-    // This is the final public URL that will be stored in your database
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
     const publicUrl = `${process.env.R2_PUBLIC_URL}/${uniqueKey}`;
 
     return NextResponse.json({ uploadUrl, publicUrl });

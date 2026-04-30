@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { ShieldAlert, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -50,32 +51,36 @@ export default function GenerateLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <h1 className="font-serif font-black text-4xl text-foreground">FIZ</h1>
-          <CardTitle className="text-2xl">Generate Admin Login</CardTitle>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <Card className="w-full max-w-md border-border/60 bg-card/90 backdrop-blur-md animate-fade-up">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <KeyRound className="h-5 w-5" />
+          </div>
+          <h1 className="font-serif font-black text-3xl text-foreground tracking-tight">FIZ</h1>
+          <CardTitle className="text-xl">Generate Admin Login</CardTitle>
           <CardDescription>
             Recreate or reset the admin account for this site.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-            <p className="font-semibold">Security warning</p>
-            <p className="mt-1">
-              This page can create admin accounts. It is protected by a setup
-              secret stored on the server. After you sign in successfully,
-              delete <code>app/generate-login/</code> and{" "}
-              <code>app/api/generate-login/</code> from the repo and rotate the
-              setup secret.
-            </p>
+        <CardContent className="space-y-5">
+          <div className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold">Security warning</p>
+              <p className="leading-relaxed">
+                This page can create admin accounts. After signing in, delete{" "}
+                <code className="rounded bg-destructive/10 px-1 py-0.5 text-xs">app/generate-login/</code>,{" "}
+                <code className="rounded bg-destructive/10 px-1 py-0.5 text-xs">app/api/generate-login/</code>,
+                and rotate the setup secret.
+              </p>
+            </div>
           </div>
 
           {done ? (
-            <div className="space-y-4">
+            <div className="space-y-4 text-center">
               <p className="text-sm text-foreground">
-                Login created. You can now sign in with the credentials you just
-                set.
+                Login created. You can now sign in with your new credentials.
               </p>
               <Button asChild className="w-full">
                 <Link href="/login">Go to login</Link>
@@ -123,8 +128,7 @@ export default function GenerateLoginPage() {
                   disabled={isLoading}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Must match the <code>SETUP_SECRET</code> environment variable
-                  on the server.
+                  Must match the <code className="rounded bg-muted px-1 py-0.5">SETUP_SECRET</code> environment variable.
                 </p>
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>

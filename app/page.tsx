@@ -7,156 +7,213 @@ import Link from "next/link"
 import prisma from "@/lib/prisma"
 import { getContent } from "@/lib/content"
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
+
+type SectionCardProps = {
+  href: string
+  external?: boolean
+  icon: React.ReactNode
+  title: string
+  description: string
+  cta: string
+  accent?: "primary" | "accent" | "secondary"
+  children?: React.ReactNode
+  delay?: string
+}
+
+function SectionCard({ href, external, icon, title, description, cta, accent = "primary", children, delay }: SectionCardProps) {
+  const accentRing =
+    accent === "secondary"
+      ? "hover:border-secondary/60 hover:shadow-[0_0_0_1px_var(--color-secondary),0_20px_40px_-20px_var(--color-secondary)]"
+      : accent === "accent"
+      ? "hover:border-accent/60 hover:shadow-[0_0_0_1px_var(--color-accent),0_20px_40px_-20px_var(--color-accent)]"
+      : "hover:border-primary/60 hover:shadow-[0_0_0_1px_var(--color-primary),0_20px_40px_-20px_var(--color-primary)]"
+
+  const iconBg =
+    accent === "secondary"
+      ? "bg-secondary/10 text-secondary"
+      : accent === "accent"
+      ? "bg-accent/10 text-accent"
+      : "bg-primary/10 text-primary"
+
+  return (
+    <Card
+      className={`group bg-card/85 backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
+      style={delay ? { animationDelay: delay } : undefined}
+    >
+      <CardContent className="p-5 md:p-6 flex h-full flex-col gap-4">
+        <div className={`flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
+          {icon}
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="font-serif text-lg md:text-xl font-bold text-foreground tracking-tight">
+            {title}
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {description}
+          </p>
+        </div>
+        {children && <div className="flex-1">{children}</div>}
+        <Button
+          asChild
+          variant="ghost"
+          className="group/btn -mx-3 mt-auto justify-start font-semibold text-foreground hover:bg-foreground/5"
+        >
+          {external ? (
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              {cta}
+              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+            </a>
+          ) : (
+            <Link href={href}>
+              {cta}
+              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+            </Link>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default async function HomePage() {
-  const recentImages = await prisma.image.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 2,
-  });
-
-  const settings = await prisma.siteSettings.findFirst();
-  const content = await getContent();
+  const [recentImages, settings, content] = await Promise.all([
+    prisma.image.findMany({ orderBy: { createdAt: 'desc' }, take: 4 }),
+    prisma.siteSettings.findFirst(),
+    getContent(),
+  ])
 
   return (
     <div className="min-h-screen">
-      <div className="text-center py-6 md:py-12 px-4">
-        {/* --- MODIFICATION: Added text-white and drop-shadow for readability --- */}
-        <h1 className="font-serif font-black text-4xl md:text-7xl text-white drop-shadow-md mb-2 md:mb-4">FIZ</h1>
-        {/* --- MODIFICATION: Changed text color and added drop-shadow --- */}
-        <p className="text-sm md:text-lg text-neutral-200 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-          {content.home_subtitle || "Pittsburgh's greatest freestyle rapper & beat maker. Making real music with my heart. Been battling \"I don't Give A F*ck\" all my life. It feels good."}
-        </p>
-      </div>
+      <section className="px-4 pt-12 pb-10 md:pt-20 md:pb-16 text-center">
+        <div className="mx-auto max-w-3xl space-y-4 md:space-y-6">
+          <span className="animate-fade-in inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Pittsburgh • Music • Spirit
+          </span>
+          <h1 className="animate-fade-up font-serif font-black text-5xl md:text-8xl text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.45)] tracking-tight">
+            FIZ
+          </h1>
+          <p className="animate-fade-up text-base md:text-lg text-neutral-100/90 max-w-2xl mx-auto leading-relaxed drop-shadow-md text-balance" style={{ animationDelay: "120ms" }}>
+            {content.home_subtitle ||
+              "Pittsburgh's greatest freestyle rapper & beat maker. Making real music with my heart. Been battling \"I don't Give A F*ck\" all my life. It feels good."}
+          </p>
+        </div>
+      </section>
 
-      <div className="px-2 md:px-4 pb-4 md:pb-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap justify-center gap-2 md:gap-6">
-            
+      <section className="px-4 pb-12 md:pb-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
             {settings?.showPictureSection && (
-              <div className="w-[calc(50%-0.25rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
-                <Card className="bg-card/90 backdrop-blur-sm border-2 border-border hover:border-primary/50 transition-colors h-full">
-                  <CardContent className="p-3 md:p-6 text-center space-y-2 md:space-y-4">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Camera className="h-6 w-6 md:h-10 md:w-10 text-primary" />
+              <SectionCard
+                href="/gallery"
+                icon={<Camera className="h-6 w-6" />}
+                title="Picture Gallery"
+                description="Visual moments from the journey."
+                cta="View gallery"
+                accent="primary"
+                delay="60ms"
+              >
+                <div className="grid grid-cols-2 gap-1.5 rounded-lg overflow-hidden">
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className="aspect-square bg-muted/60 overflow-hidden rounded-md">
+                      {recentImages[i] ? (
+                        <img
+                          src={recentImages[i].src}
+                          alt={recentImages[i].alt || `Recent ${i + 1}`}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : null}
                     </div>
-                    <h2 className="font-serif font-bold text-sm md:text-xl text-foreground">Picture Gallery</h2>
-                    <p className="text-secondary text-xs md:text-sm hidden md:block">Visual moments from the journey.</p>
-                    <div className="bg-muted rounded-lg p-2 md:p-4">
-                      <div className="grid grid-cols-2 gap-1 mb-2 md:mb-3">
-                        <div className="aspect-square rounded overflow-hidden bg-background/50">
-                          {recentImages[0] ? (<img src={recentImages[0].src} alt={recentImages[0].alt || 'Recent image 1'} className="w-full h-full object-cover"/>) : <div className="w-full h-full bg-muted"></div>}
-                        </div>
-                        <div className="aspect-square rounded overflow-hidden bg-background/50">
-                          {recentImages[1] ? (<img src={recentImages[1].src} alt={recentImages[1].alt || 'Recent image 2'} className="w-full h-full object-cover"/>) : <div className="w-full h-full bg-muted"></div>}
-                        </div>
-                      </div>
-                      <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-xs md:text-sm">
-                        <Link href="/gallery"><span className="hidden md:inline">View Gallery</span><span className="md:hidden">View</span><ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" /></Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  ))}
+                </div>
+              </SectionCard>
             )}
 
             {settings?.showTextSection && (
-              <div className="w-[calc(50%-0.25rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
-                <Card className="bg-muted/90 backdrop-blur-sm border-2 border-border hover:border-accent/50 transition-colors h-full">
-                  <CardContent className="p-3 md:p-6 text-center space-y-2 md:space-y-4">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-                      <FileText className="h-6 w-6 md:h-10 md:w-10 text-accent" />
-                    </div>
-                    <h2 className="font-serif font-bold text-sm md:text-xl text-foreground">Text Gallery</h2>
-                    <p className="text-secondary text-xs md:text-sm hidden md:block">Raw thoughts, real stories.</p>
-                    <div className="bg-background rounded-lg p-2 md:p-4">
-                      <div className="text-left space-y-1 mb-2 md:mb-3">
-                        <div className="h-1.5 md:h-2 bg-accent/20 rounded w-full"></div>
-                        <div className="h-1.5 md:h-2 bg-accent/15 rounded w-3/4"></div>
-                        <div className="h-1.5 md:h-2 bg-accent/10 rounded w-1/2"></div>
-                      </div>
-                      <Button asChild size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground bg-transparent text-xs md:text-sm">
-                        <Link href="/texts"><span className="hidden md:inline">Read Stories</span><span className="md:hidden">Read</span><ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" /></Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <SectionCard
+                href="/texts"
+                icon={<FileText className="h-6 w-6" />}
+                title="Text Gallery"
+                description="Raw thoughts, real stories."
+                cta="Read stories"
+                accent="accent"
+                delay="120ms"
+              >
+                <div className="space-y-2 rounded-lg bg-background/60 p-3">
+                  <div className="h-2 w-full rounded-full bg-accent/25" />
+                  <div className="h-2 w-4/5 rounded-full bg-accent/20" />
+                  <div className="h-2 w-2/3 rounded-full bg-accent/15" />
+                  <div className="h-2 w-1/2 rounded-full bg-accent/10" />
+                </div>
+              </SectionCard>
             )}
 
-            <div className="w-[calc(50%-0.25rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
-              <Card className="bg-card/90 backdrop-blur-sm border-2 border-border hover:border-primary/50 transition-colors h-full">
-                <CardContent className="p-3 md:p-6 text-center space-y-2 md:space-y-4">
-                  <div className="w-12 h-12 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                    <GraduationCap className="h-6 w-6 md:h-10 md:w-10 text-primary" />
-                  </div>
-                  <h2 className="font-serif font-bold text-sm md:text-xl text-foreground">Courses</h2>
-                  <p className="text-secondary text-xs md:text-sm hidden md:block">Learn the craft, from beats to flow.</p>
-                  <div className="bg-muted rounded-lg p-2 md:p-4">
-                    <div className="text-left space-y-1 mb-2 md:mb-3">
-                      <p className="text-xs font-bold text-primary">Free & Premium Lessons</p>
-                      <p className="text-xs text-muted-foreground">Unlock your creative potential.</p>
-                    </div>
-                    <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-xs md:text-sm">
-                      <Link href="/courses">
-                        <span className="hidden md:inline">View Courses</span>
-                        <span className="md:hidden">View</span>
-                        <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <SectionCard
+              href="/courses"
+              icon={<GraduationCap className="h-6 w-6" />}
+              title="Courses"
+              description="Learn the craft, from beats to flow."
+              cta="View courses"
+              accent="primary"
+              delay="180ms"
+            >
+              <div className="rounded-lg bg-muted/70 p-3 space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-primary">Free & Premium</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Unlock your creative potential.
+                </p>
+              </div>
+            </SectionCard>
 
             {settings?.showSpiritualSection && (
-              <div className="w-[calc(50%-0.25rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
-                <Card className="bg-card/90 backdrop-blur-sm border-2 border-border hover:border-secondary/50 transition-colors h-full">
-                  <CardContent className="p-3 md:p-6 text-center space-y-2 md:space-y-4">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-secondary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Heart className="h-6 w-6 md:h-10 md:w-10 text-secondary" />
-                    </div>
-                    <h2 className="font-serif font-bold text-sm md:text-xl text-foreground">Spiritual Sessions</h2>
-                    <p className="text-secondary text-xs md:text-sm hidden md:block">One-on-one spiritual guidance.</p>
-                    <div className="space-y-2 md:space-y-3">
-                      <div className="bg-muted rounded-lg p-2 md:p-3">
-                        <p className="text-xs md:text-sm text-foreground font-medium">1-Hour Session</p>
-                        <p className="text-xs text-muted-foreground hidden md:block">Deep spiritual conversation</p>
-                      </div>
-                      <Button asChild size="sm" variant="outline" className="w-full border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground bg-transparent text-xs md:text-sm">
-                        <Link href="/consultation"><span className="hidden md:inline">Book Session</span><span className="md:hidden">Book</span><ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" /></Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <SectionCard
+                href="/consultation"
+                icon={<Heart className="h-6 w-6" />}
+                title="Spiritual Sessions"
+                description="One-on-one spiritual guidance."
+                cta="Book a session"
+                accent="secondary"
+                delay="240ms"
+              >
+                <div className="rounded-lg bg-muted/70 p-3 space-y-1">
+                  <p className="text-sm font-medium text-foreground">1-Hour Session</p>
+                  <p className="text-xs text-muted-foreground">Deep spiritual conversation.</p>
+                </div>
+              </SectionCard>
             )}
 
             {settings?.showMusicSection && (
-              <div className="w-[calc(50%-0.25rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
-                <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-2 border-border hover:border-primary/30 transition-colors h-full bg-card/90 backdrop-blur-sm">
-                  <CardContent className="p-3 md:p-6 text-center space-y-2 md:space-y-4">
-                    <div className="w-12 h-12 md:w-20 md:h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Music className="h-6 w-6 md:h-10 md:w-10 text-primary" />
-                    </div>
-                    <h2 className="font-serif font-bold text-sm md:text-xl text-foreground">Music Universe</h2>
-                    <p className="text-secondary text-xs md:text-sm hidden md:block">Beats, freestyles, and tracks.</p>
-                    <div className="space-y-2 md:space-y-3">
-                      <Button asChild size="sm" className="w-full bg-primary hover:bg-primary/90 text-xs md:text-sm">
-                        <Link href="/music"><span className="hidden md:inline">Latest Tracks</span><span className="md:hidden">Tracks</span><Music className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" /></Link>
-                      </Button>
-                      <Button asChild size="sm" variant="outline" className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground bg-transparent text-xs md:text-sm">
-                        <a href="https://instagram.com/snapcracklefizzle" target="_blank" rel="noopener noreferrer"><span className="hidden md:inline">Follow Journey</span><span className="md:hidden">Follow</span><ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1 md:ml-2" /></a>
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground hidden md:block">Find all my music by typing "fiz" on any platform</p>
-                  </CardContent>
-                </Card>
-              </div>
+              <SectionCard
+                href="/music"
+                icon={<Music className="h-6 w-6" />}
+                title="Music Universe"
+                description="Beats, freestyles, and tracks."
+                cta="Latest tracks"
+                accent="primary"
+                delay="300ms"
+              >
+                <div className="space-y-2">
+                  <div className="rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 p-3 space-y-1">
+                    <p className="text-xs font-medium text-foreground">Find me everywhere</p>
+                    <p className="text-xs text-muted-foreground">
+                      Search "fiz" on any platform.
+                    </p>
+                  </div>
+                  <a
+                    href="https://instagram.com/snapcracklefizzle"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full rounded-md border border-accent/40 bg-transparent px-3 py-1.5 text-center text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Follow on Instagram
+                  </a>
+                </div>
+              </SectionCard>
             )}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

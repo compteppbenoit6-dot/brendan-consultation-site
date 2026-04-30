@@ -5,6 +5,7 @@
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { requireAdmin } from "@/lib/auth-guard"
 
 const VideoSchema = z.object({
   id: z.string().optional(),
@@ -37,6 +38,7 @@ const CourseSchema = z.object({
 
 export async function getCourses() {
   try {
+    await requireAdmin()
     const courses = await prisma.course.findMany({
       orderBy: { createdAt: 'desc' },
       include: { videos: { orderBy: { order: 'asc' } } },
@@ -48,6 +50,7 @@ export async function getCourses() {
 }
 
 export async function upsertCourse(prevState: any, formData: FormData) {
+  await requireAdmin()
   const data = Object.fromEntries(formData.entries());
   const validatedFields = CourseSchema.safeParse(data);
 
@@ -119,6 +122,7 @@ export async function upsertCourse(prevState: any, formData: FormData) {
 
 export async function deleteCourse(id: string) {
   try {
+    await requireAdmin()
     // Videos are deleted automatically due to `onDelete: Cascade` in the schema
     await prisma.course.delete({ where: { id } });
     revalidatePath("/admin/courses");

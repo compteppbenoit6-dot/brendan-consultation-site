@@ -33,7 +33,7 @@ async function uploadFile(file: File, onProgress: (progress: number) => void): P
   const response = await fetch('/api/courses/upload', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename: file.name, contentType: file.type }),
+    body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
   });
 
   if (!response.ok) throw new Error('Failed to get upload URL.');

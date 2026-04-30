@@ -4,9 +4,11 @@
 
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { requireAdmin } from "@/lib/auth-guard"
 
 export async function updateContentBlocks(prevState: any, formData: FormData) {
   try {
+    await requireAdmin()
     const updates = [];
     for (const [key, value] of formData.entries()) {
       updates.push(
@@ -54,6 +56,8 @@ export async function ensureContentBlocks() {
     { key: 'seo_courses_description', value: 'Learn beatmaking and freestyle techniques from Fiz.' },
     { key: 'seo_consultation_title', value: 'Spiritual Sessions | Fiz' },
     { key: 'seo_consultation_description', value: 'Book a spiritual consultation session with Fiz.' },
+    // Operations
+    { key: 'notification_email', value: 'brendan89890@yahoo.com' },
   ];
 
   for (const block of defaultBlocks) {

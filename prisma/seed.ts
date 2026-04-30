@@ -69,6 +69,7 @@ async function main() {
       { key: 'seo_consultation_description', value: 'Book a spiritual consultation session with Fiz.' },
       { key: 'footer_email', value: 'brendan89890@yahoo.com' },
       { key: 'footer_youtube_url', value: 'https://www.youtube.com/@snapcracklefizzle9954' },
+      { key: 'notification_email', value: 'brendan89890@yahoo.com' },
     ],
   });
   console.log('Created default content blocks.');

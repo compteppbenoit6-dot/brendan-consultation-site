@@ -4,6 +4,13 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+  IMAGE_CONTENT_TYPES,
+  MAX_IMAGE_SIZE_BYTES,
+  isAllowedContentType,
+  isValidSize,
+  sanitizeFilename,
+} from '@/lib/upload';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -20,21 +27,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
   }
 
+  let payload: unknown;
   try {
-    const { filename, contentType } = await request.json();
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
 
-    // Security: Ensure only allowed image types are processed
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedImageTypes.includes(contentType)) {
-      return NextResponse.json({ error: 'Unsupported file type.' }, { status: 400 });
-    }
+  const { filename, contentType, size } = (payload ?? {}) as {
+    filename?: unknown;
+    contentType?: unknown;
+    size?: unknown;
+  };
 
-    const uniqueKey = `images/${Date.now()}-${filename.replace(/\s/g, '_')}`;
+  if (!isAllowedContentType(contentType, IMAGE_CONTENT_TYPES)) {
+    return NextResponse.json({ error: 'Unsupported file type.' }, { status: 400 });
+  }
+
+  if (!isValidSize(size, MAX_IMAGE_SIZE_BYTES)) {
+    return NextResponse.json(
+      { error: `File too large. Maximum size is ${MAX_IMAGE_SIZE_BYTES / (1024 * 1024)}MB.` },
+      { status: 400 }
+    );
+  }
+
+  const safeName = sanitizeFilename(filename);
+  if (!safeName) {
+    return NextResponse.json({ error: 'Invalid filename.' }, { status: 400 });
+  }
+
+  try {
+    const uniqueKey = `images/${Date.now()}-${safeName}`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME!,
       Key: uniqueKey,
       ContentType: contentType,
+      ContentLength: size,
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });

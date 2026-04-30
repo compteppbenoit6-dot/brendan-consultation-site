@@ -12,8 +12,10 @@ import { VideoPlayer } from "./video-player";
 import { UnlockForm } from "./unlock-form";
 import type { Course, CourseVideo } from "@prisma/client";
 
+type SafeCourse = Omit<Course, "unlockCode"> & { videos: CourseVideo[] }
+
 // The entire component is now cleanly defined in a client-only file
-export function CourseClientPage({ course }: { course: Course & { videos: CourseVideo[] } }) {
+export function CourseClientPage({ course }: { course: SafeCourse }) {
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(course.videos[0] || null);
 
   const CourseContent = () => (
@@ -72,7 +74,7 @@ export function CourseClientPage({ course }: { course: Course & { videos: Course
           </CardHeader>
           <CardContent>
             {course.isPremium ? (
-              <UnlockForm correctCode={course.unlockCode || ""}>
+              <UnlockForm courseId={course.id}>
                 <CourseContent />
               </UnlockForm>
             ) : (
