@@ -10,7 +10,6 @@ import { getContent } from "@/lib/content"
 import {
   clampColSpan,
   clampOpacity,
-  isCompactTile,
   TILE_WIDTH_CLASS,
   tileBackgroundStyle,
   type TileColSpan,
@@ -64,33 +63,29 @@ function SectionCard({
     ...(delay ? { animationDelay: delay } : null),
   }
 
-  // At narrow widths the preview content stretches the card vertically; hide it
-  // so the tile stays compact and roughly square.
-  const compact = isCompactTile(colSpan)
-
   return (
     <div className={TILE_WIDTH_CLASS[colSpan]}>
       <Card
         className={`group backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
         style={cardStyle}
       >
-        <CardContent className={`flex h-full flex-col ${compact ? "gap-3 p-4" : "gap-4 p-5 md:p-6"}`}>
-          <div className={`flex items-center justify-center ${compact ? "h-10 w-10 rounded-xl" : "h-12 w-12 md:h-14 md:w-14 rounded-2xl"} ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
+        <CardContent className="flex h-full flex-col gap-4 p-5 md:p-6">
+          <div className={`flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
             {isValidElement(icon)
               ? cloneElement(icon as React.ReactElement<{ className?: string }>, {
-                  className: compact ? "h-5 w-5" : "h-6 w-6",
+                  className: "h-6 w-6",
                 })
               : icon}
           </div>
           <div className="space-y-1.5">
-            <h2 className={`font-serif font-bold text-foreground tracking-tight ${compact ? "text-base" : "text-lg md:text-xl"}`}>
+            <h2 className="font-serif font-bold text-foreground tracking-tight text-lg md:text-xl">
               {title}
             </h2>
-            <p className={`text-muted-foreground leading-relaxed ${compact ? "text-xs" : "text-sm"}`}>
+            <p className="text-muted-foreground leading-relaxed text-sm">
               {description}
             </p>
           </div>
-          {!compact && children && <div className="flex-1">{children}</div>}
+          {children && <div className="flex-1">{children}</div>}
           <Button
             asChild
             variant="ghost"
@@ -165,11 +160,11 @@ export default async function HomePage() {
       <section className="px-4 pb-12 md:pb-20">
         <div className="mx-auto max-w-6xl">
           {/*
-            Flex-wrap with justify-center so partial rows are centered.
+            Flex-wrap with justify-start so tiles flow left-to-right.
             Per-tile widths come from TILE_WIDTH_CLASS and are calc'd to leave
             room for a 1rem gap between siblings.
           */}
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-start gap-4">
             {settings?.showPictureSection && (
               <SectionCard
                 href="/gallery"

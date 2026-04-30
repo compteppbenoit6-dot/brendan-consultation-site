@@ -53,7 +53,7 @@ export async function ensureContentBlocks() {
     { key: 'courses_subtitle', value: 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.' },
     // Footer
     { key: 'footer_email', value: 'brendan89890@yahoo.com' },
-    { key: 'footer_youtube_url', value: 'https://www.youtube.com/@snapcracklefizzle9954' },
+    { key: 'footer_youtube_url', value: 'https://www.youtube.com/@Fizguru-Godwillcallyou' },
     // Global SEO
     { key: 'seo_title', value: 'Fiz - Freestyle & Beats' },
     { key: 'seo_description', value: "Pittsburgh's finest freestyle rapper and beat maker. Real music for the world." },
@@ -79,4 +79,17 @@ export async function ensureContentBlocks() {
       create: block,
     });
   }
+
+  // One-time migration: replace the old YouTube channel URL only if it still
+  // matches the previous default. If the admin has already customized it to
+  // anything else, leave it alone.
+  await prisma.contentBlock.updateMany({
+    where: {
+      key: 'footer_youtube_url',
+      value: 'https://www.youtube.com/@snapcracklefizzle9954',
+    },
+    data: {
+      value: 'https://www.youtube.com/@Fizguru-Godwillcallyou',
+    },
+  });
 }

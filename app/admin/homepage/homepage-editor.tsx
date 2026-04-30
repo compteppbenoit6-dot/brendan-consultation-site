@@ -22,7 +22,6 @@ import {
   clampColSpan,
   clampOpacity,
   colSpanToPercent,
-  isCompactTile,
   tileBackgroundStyle,
   type TileColSpan,
   type TileKey,
@@ -146,7 +145,7 @@ export function HomepageEditor({
             )}
           </div>
           <div className="p-4 sm:p-6 lg:p-8" style={previewBg}>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-start gap-4">
               {ORDERED_KEYS.map((key) => (
                 <PreviewTile
                   key={key}
@@ -227,28 +226,26 @@ function PreviewTile({
       ? "bg-accent/10 text-accent"
       : "bg-primary/10 text-primary"
 
-  const compact = isCompactTile(colSpan)
-
   return (
     <div className={TILE_WIDTH_CLASS[colSpan]}>
       <div
         className="h-full rounded-xl border border-border/60 backdrop-blur-md transition-all"
         style={tileBackgroundStyle(opacity)}
       >
-        <div className={`flex h-full flex-col ${compact ? "gap-3 p-4" : "gap-4 p-5 md:p-6"}`}>
-          <div className={`flex items-center justify-center ${compact ? "h-10 w-10 rounded-xl" : "h-12 w-12 rounded-2xl"} ${iconBg}`}>
+        <div className="flex h-full flex-col gap-4 p-5 md:p-6">
+          <div className={`flex items-center justify-center h-12 w-12 rounded-2xl ${iconBg}`}>
             {isValidElement(TILE_ICON[tileKey])
               ? cloneElement(
                   TILE_ICON[tileKey] as React.ReactElement<{ className?: string }>,
-                  { className: compact ? "h-5 w-5" : "h-6 w-6" }
+                  { className: "h-6 w-6" }
                 )
               : TILE_ICON[tileKey]}
           </div>
           <div className="space-y-1">
-            <h3 className={`font-serif font-bold text-foreground tracking-tight ${compact ? "text-base" : "text-lg"}`}>
+            <h3 className="font-serif font-bold text-foreground tracking-tight text-lg">
               {TILE_LABELS[tileKey]}
             </h3>
-            <p className={`text-muted-foreground leading-relaxed ${compact ? "text-xs" : "text-sm"}`}>
+            <p className="text-muted-foreground leading-relaxed text-sm">
               {TILE_DESCRIPTION[tileKey]}
             </p>
           </div>

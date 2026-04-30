@@ -65,14 +65,6 @@ export const TILE_WIDTH_CLASS: Record<TileColSpan, string> = {
   6: "w-full",
 }
 
-// At narrow widths the bulky preview content (image grids, preview bars, etc.)
-// stretches the tile into an ugly tall rectangle. We hide it below this threshold
-// so narrow tiles render as compact, near-square cards.
-export const COMPACT_TILE_THRESHOLD: TileColSpan = 2
-
-export function isCompactTile(span: TileColSpan): boolean {
-  return span <= COMPACT_TILE_THRESHOLD
-}
 
 // Width as a percentage of the row, for showing in the editor.
 export function colSpanToPercent(span: TileColSpan): number {
