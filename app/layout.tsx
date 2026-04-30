@@ -42,6 +42,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const BACKGROUND_VIDEO_SRC = "/background-video.mp4"
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -50,12 +52,16 @@ export default async function RootLayout({
   const settings = await prisma.siteSettings.findFirst();
   const backgroundImageUrl = settings?.backgroundImageUrl;
 
-  const bodyStyle: React.CSSProperties = backgroundImageUrl ? {
-    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${backgroundImageUrl})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
-  } : {};
+  // The static image (if set) acts as a poster for the video and as the
+  // fallback for users with prefers-reduced-motion (the video element is
+  // hidden via the motion-reduce: utility below).
+  const fallbackBgStyle: React.CSSProperties = backgroundImageUrl
+    ? {
+        backgroundImage: `url(${backgroundImageUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : { backgroundColor: "#000" }
 
   return (
     <html
@@ -64,15 +70,36 @@ export default async function RootLayout({
       className={cn(playfairDisplay.variable, sourceSans3.variable, "antialiased")}
       suppressHydrationWarning
     >
-      <body className="font-sans" style={bodyStyle}>
+      <body className="font-sans">
+        {/* Fixed video background — sits behind every page. */}
+        <div
+          aria-hidden
+          className="fixed inset-0 -z-10 overflow-hidden"
+          style={fallbackBgStyle}
+        >
+          <video
+            className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster={backgroundImageUrl ?? undefined}
+          >
+            <source src={BACKGROUND_VIDEO_SRC} type="video/mp4" />
+          </video>
+          {/* Readability overlay so text on top of the video stays legible. */}
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
+
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem={false} 
+          enableSystem={false}
           disableTransitionOnChange
         >
           <GlobalAudioPlayer />
-          
+
           <div className="flex flex-col min-h-screen">
             <main className="flex-grow">
               {children}
