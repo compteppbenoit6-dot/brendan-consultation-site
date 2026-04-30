@@ -85,18 +85,26 @@ model SiteSettings {
   showPictureSection   Boolean  @default(true)
   backgroundImageUrl   String?
 
-  // Homepage tile customization. opacity is 0-100 (CSS background opacity %),
-  // size is "small" | "medium" | "large" (controls padding, icon, and grid span).
+  // Homepage tile customization.
+  // opacity: 0-100 (background opacity %).
+  // colSpan: 1-6 (out of a 6-column grid on large screens, so 1 is ~17% wide,
+  //   3 is half-row, 6 is full-row hero). Default 2 ≈ one third of the row.
+  // The legacy *TileSize columns are kept for schema compat but no longer read.
   pictureTileOpacity   Int      @default(70)
   pictureTileSize      String   @default("medium")
+  pictureTileColSpan   Int      @default(2)
   textTileOpacity      Int      @default(70)
   textTileSize         String   @default("medium")
+  textTileColSpan      Int      @default(2)
   coursesTileOpacity   Int      @default(70)
   coursesTileSize      String   @default("medium")
+  coursesTileColSpan   Int      @default(2)
   spiritualTileOpacity Int      @default(70)
   spiritualTileSize    String   @default("medium")
+  spiritualTileColSpan Int      @default(2)
   musicTileOpacity     Int      @default(70)
   musicTileSize        String   @default("medium")
+  musicTileColSpan     Int      @default(2)
 
   updatedAt            DateTime @updatedAt
 }

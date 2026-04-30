@@ -13,22 +13,19 @@ import {
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
+  COL_SPAN_CLASS,
   TILE_LABELS,
+  clampColSpan,
+  clampOpacity,
+  colSpanToPercent,
+  tileBackgroundStyle,
+  type TileColSpan,
   type TileKey,
   type TileLayoutInput,
-  type TileSize,
-  tileBackgroundStyle,
-  tileSizeClasses,
 } from "@/lib/tile-config"
 import { updateHomepageLayout } from "./actions"
 
@@ -66,25 +63,25 @@ const FIELD_OPACITY: Record<TileKey, keyof TileLayoutInput> = {
   music: "musicTileOpacity",
 }
 
-const FIELD_SIZE: Record<TileKey, keyof TileLayoutInput> = {
-  picture: "pictureTileSize",
-  text: "textTileSize",
-  courses: "coursesTileSize",
-  spiritual: "spiritualTileSize",
-  music: "musicTileSize",
+const FIELD_COLSPAN: Record<TileKey, keyof TileLayoutInput> = {
+  picture: "pictureTileColSpan",
+  text: "textTileColSpan",
+  courses: "coursesTileColSpan",
+  spiritual: "spiritualTileColSpan",
+  music: "musicTileColSpan",
 }
 
 const DEFAULTS: TileLayoutInput = {
   pictureTileOpacity: 70,
-  pictureTileSize: "medium",
+  pictureTileColSpan: 2,
   textTileOpacity: 70,
-  textTileSize: "medium",
+  textTileColSpan: 2,
   coursesTileOpacity: 70,
-  coursesTileSize: "medium",
+  coursesTileColSpan: 2,
   spiritualTileOpacity: 70,
-  spiritualTileSize: "medium",
+  spiritualTileColSpan: 2,
   musicTileOpacity: 70,
-  musicTileSize: "medium",
+  musicTileColSpan: 2,
 }
 
 export function HomepageEditor({
@@ -101,11 +98,11 @@ export function HomepageEditor({
   const dirty = JSON.stringify(layout) !== JSON.stringify(savedSnapshot)
 
   const setOpacity = (key: TileKey, value: number) => {
-    setLayout((l) => ({ ...l, [FIELD_OPACITY[key]]: value }))
+    setLayout((l) => ({ ...l, [FIELD_OPACITY[key]]: clampOpacity(value) }))
   }
 
-  const setSize = (key: TileKey, value: TileSize) => {
-    setLayout((l) => ({ ...l, [FIELD_SIZE[key]]: value }))
+  const setColSpan = (key: TileKey, value: number) => {
+    setLayout((l) => ({ ...l, [FIELD_COLSPAN[key]]: clampColSpan(value) }))
   }
 
   const handleSave = () => {
@@ -120,16 +117,6 @@ export function HomepageEditor({
     })
   }
 
-  const handleReset = () => {
-    setLayout(DEFAULTS)
-  }
-
-  const handleRevert = () => {
-    setLayout(savedSnapshot)
-  }
-
-  // Background style for the preview pane: use the saved backdrop image if any,
-  // otherwise a dark gradient that hints at the live video backdrop.
   const previewBg: React.CSSProperties = backgroundImageUrl
     ? {
         backgroundImage: `linear-gradient(rgba(20,0,0,0.55), rgba(20,0,0,0.55)), url(${backgroundImageUrl})`,
@@ -150,23 +137,21 @@ export function HomepageEditor({
             <div>
               <p className="text-sm font-semibold">Live preview</p>
               <p className="text-xs text-muted-foreground">
-                Reflects unsaved changes. Hidden tiles still appear here so you can tune them.
+                Reflects unsaved changes. Width = how many of 6 grid columns the tile occupies.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              {dirty && (
-                <span className="text-xs font-medium text-amber-600">Unsaved changes</span>
-              )}
-            </div>
+            {dirty && (
+              <span className="text-xs font-medium text-amber-600">Unsaved changes</span>
+            )}
           </div>
           <div className="p-4 sm:p-6 lg:p-8" style={previewBg}>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 md:gap-5">
               {ORDERED_KEYS.map((key) => (
                 <PreviewTile
                   key={key}
                   tileKey={key}
                   opacity={layout[FIELD_OPACITY[key]] as number}
-                  size={layout[FIELD_SIZE[key]] as TileSize}
+                  colSpan={layout[FIELD_COLSPAN[key]] as TileColSpan}
                 />
               ))}
             </div>
@@ -181,9 +166,9 @@ export function HomepageEditor({
             key={key}
             tileKey={key}
             opacity={layout[FIELD_OPACITY[key]] as number}
-            size={layout[FIELD_SIZE[key]] as TileSize}
+            colSpan={layout[FIELD_COLSPAN[key]] as TileColSpan}
             onOpacityChange={(v) => setOpacity(key, v)}
-            onSizeChange={(v) => setSize(key, v)}
+            onColSpanChange={(v) => setColSpan(key, v)}
           />
         ))}
       </div>
@@ -195,7 +180,7 @@ export function HomepageEditor({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleReset}
+              onClick={() => setLayout(DEFAULTS)}
               disabled={isPending}
               className="gap-1.5"
             >
@@ -206,7 +191,7 @@ export function HomepageEditor({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleRevert}
+                onClick={() => setLayout(savedSnapshot)}
                 disabled={isPending}
               >
                 Discard changes
@@ -226,13 +211,12 @@ export function HomepageEditor({
 function PreviewTile({
   tileKey,
   opacity,
-  size,
+  colSpan,
 }: {
   tileKey: TileKey
   opacity: number
-  size: TileSize
+  colSpan: TileColSpan
 }) {
-  const cls = tileSizeClasses(size)
   const accent = TILE_ACCENT[tileKey]
 
   const iconBg =
@@ -243,32 +227,31 @@ function PreviewTile({
       : "bg-primary/10 text-primary"
 
   return (
-    <div className={cls.span}>
+    <div className={COL_SPAN_CLASS[colSpan]}>
       <div
         className="h-full rounded-xl border border-border/60 backdrop-blur-md transition-all"
         style={tileBackgroundStyle(opacity)}
       >
-        <div className={`flex h-full flex-col ${cls.padding} ${cls.gap}`}>
-          <div
-            className={`flex items-center justify-center ${cls.iconWrap} ${iconBg}`}
-          >
+        <div className="flex h-full flex-col gap-4 p-5 md:p-6">
+          <div className={`flex items-center justify-center h-12 w-12 rounded-2xl ${iconBg}`}>
             {isValidElement(TILE_ICON[tileKey])
               ? cloneElement(
                   TILE_ICON[tileKey] as React.ReactElement<{ className?: string }>,
-                  { className: cls.iconSvg }
+                  { className: "h-6 w-6" }
                 )
               : TILE_ICON[tileKey]}
           </div>
           <div className="space-y-1">
-            <h3 className={`font-serif font-bold text-foreground tracking-tight ${cls.title}`}>
+            <h3 className="font-serif font-bold text-foreground tracking-tight text-lg">
               {TILE_LABELS[tileKey]}
             </h3>
-            <p className={`text-muted-foreground leading-relaxed ${cls.description}`}>
+            <p className="text-muted-foreground leading-relaxed text-sm">
               {TILE_DESCRIPTION[tileKey]}
             </p>
           </div>
-          <div className="mt-auto pt-2 text-xs font-semibold text-foreground/70">
-            opacity {opacity}% · {size}
+          <div className="mt-auto pt-2 flex items-center gap-2 text-xs font-mono text-foreground/60">
+            <span className="rounded bg-foreground/5 px-1.5 py-0.5">{opacity}%</span>
+            <span className="rounded bg-foreground/5 px-1.5 py-0.5">{colSpan}/6 · {colSpanToPercent(colSpan)}%</span>
           </div>
         </div>
       </div>
@@ -279,59 +262,105 @@ function PreviewTile({
 function TileControls({
   tileKey,
   opacity,
-  size,
+  colSpan,
   onOpacityChange,
-  onSizeChange,
+  onColSpanChange,
 }: {
   tileKey: TileKey
   opacity: number
-  size: TileSize
+  colSpan: TileColSpan
   onOpacityChange: (value: number) => void
-  onSizeChange: (value: TileSize) => void
+  onColSpanChange: (value: number) => void
 }) {
   return (
     <Card>
-      <CardContent className="space-y-4 p-4">
+      <CardContent className="space-y-5 p-4">
         <div className="flex items-center gap-3">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-            {TILE_ICON[tileKey]}
+            {isValidElement(TILE_ICON[tileKey])
+              ? cloneElement(
+                  TILE_ICON[tileKey] as React.ReactElement<{ className?: string }>,
+                  { className: "h-4 w-4" }
+                )
+              : TILE_ICON[tileKey]}
           </span>
-          <div>
-            <p className="text-sm font-semibold">{TILE_LABELS[tileKey]}</p>
-          </div>
+          <p className="text-sm font-semibold">{TILE_LABELS[tileKey]}</p>
         </div>
 
+        {/* Opacity: slider + number input */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor={`${tileKey}-opacity`} className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Opacity
             </Label>
-            <span className="text-xs font-mono text-foreground">{opacity}%</span>
+            <span className="text-[10px] text-muted-foreground">0–100</span>
           </div>
-          <Slider
-            id={`${tileKey}-opacity`}
-            value={[opacity]}
-            min={0}
-            max={100}
-            step={5}
-            onValueChange={(v) => onOpacityChange(v[0] ?? 0)}
-          />
+          <div className="flex items-center gap-3">
+            <Slider
+              id={`${tileKey}-opacity`}
+              value={[opacity]}
+              min={0}
+              max={100}
+              step={1}
+              onValueChange={(v) => onOpacityChange(v[0] ?? 0)}
+              className="flex-1"
+            />
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={opacity}
+              onChange={(e) => {
+                const n = parseInt(e.target.value, 10)
+                onOpacityChange(Number.isFinite(n) ? n : 0)
+              }}
+              className="w-16 text-center font-mono text-sm"
+              aria-label={`${TILE_LABELS[tileKey]} opacity exact value`}
+            />
+          </div>
         </div>
 
+        {/* Width: slider 1-6 */}
         <div className="space-y-2">
-          <Label htmlFor={`${tileKey}-size`} className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Size
-          </Label>
-          <Select value={size} onValueChange={(v) => onSizeChange(v as TileSize)}>
-            <SelectTrigger id={`${tileKey}-size`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="small">Small</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="large">Large (spans 2 columns)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center justify-between">
+            <Label htmlFor={`${tileKey}-width`} className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Width
+            </Label>
+            <span className="text-[10px] text-muted-foreground">1–6 columns</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Slider
+              id={`${tileKey}-width`}
+              value={[colSpan]}
+              min={1}
+              max={6}
+              step={1}
+              onValueChange={(v) => onColSpanChange(v[0] ?? 2)}
+              className="flex-1"
+            />
+            <div className="flex w-16 flex-col items-center text-xs">
+              <span className="font-mono font-semibold text-foreground">{colSpan}/6</span>
+              <span className="text-[10px] text-muted-foreground">{colSpanToPercent(colSpan)}%</span>
+            </div>
+          </div>
+          <div className="flex justify-between gap-1 pt-1">
+            {[1, 2, 3, 4, 5, 6].map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onColSpanChange(v)}
+                className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
+                  colSpan === v
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+                aria-label={`Set width to ${v} of 6`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>

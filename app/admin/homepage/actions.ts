@@ -4,22 +4,22 @@ import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireAdmin } from "@/lib/auth-guard"
-import type { TileLayoutInput } from "@/lib/tile-config"
+import type { TileColSpan, TileLayoutInput } from "@/lib/tile-config"
 
-const SizeSchema = z.enum(["small", "medium", "large"])
+const ColSpanSchema = z.coerce.number().int().min(1).max(6)
 const OpacitySchema = z.coerce.number().int().min(0).max(100)
 
 const TileLayoutSchema = z.object({
   pictureTileOpacity: OpacitySchema,
-  pictureTileSize: SizeSchema,
+  pictureTileColSpan: ColSpanSchema,
   textTileOpacity: OpacitySchema,
-  textTileSize: SizeSchema,
+  textTileColSpan: ColSpanSchema,
   coursesTileOpacity: OpacitySchema,
-  coursesTileSize: SizeSchema,
+  coursesTileColSpan: ColSpanSchema,
   spiritualTileOpacity: OpacitySchema,
-  spiritualTileSize: SizeSchema,
+  spiritualTileColSpan: ColSpanSchema,
   musicTileOpacity: OpacitySchema,
-  musicTileSize: SizeSchema,
+  musicTileColSpan: ColSpanSchema,
 })
 
 export async function getHomepageLayout() {
@@ -30,15 +30,15 @@ export async function getHomepageLayout() {
   }
   const layout: TileLayoutInput = {
     pictureTileOpacity: settings.pictureTileOpacity,
-    pictureTileSize: settings.pictureTileSize as TileLayoutInput["pictureTileSize"],
+    pictureTileColSpan: settings.pictureTileColSpan as TileColSpan,
     textTileOpacity: settings.textTileOpacity,
-    textTileSize: settings.textTileSize as TileLayoutInput["textTileSize"],
+    textTileColSpan: settings.textTileColSpan as TileColSpan,
     coursesTileOpacity: settings.coursesTileOpacity,
-    coursesTileSize: settings.coursesTileSize as TileLayoutInput["coursesTileSize"],
+    coursesTileColSpan: settings.coursesTileColSpan as TileColSpan,
     spiritualTileOpacity: settings.spiritualTileOpacity,
-    spiritualTileSize: settings.spiritualTileSize as TileLayoutInput["spiritualTileSize"],
+    spiritualTileColSpan: settings.spiritualTileColSpan as TileColSpan,
     musicTileOpacity: settings.musicTileOpacity,
-    musicTileSize: settings.musicTileSize as TileLayoutInput["musicTileSize"],
+    musicTileColSpan: settings.musicTileColSpan as TileColSpan,
   }
   return { layout, settingsId: settings.id }
 }
