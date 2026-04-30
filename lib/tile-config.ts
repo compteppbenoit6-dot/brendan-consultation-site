@@ -50,16 +50,28 @@ export function tileBackgroundStyle(opacity: number): CSSProperties {
   }
 }
 
-// Static class strings so Tailwind v4 can detect them at build time.
-// On mobile (1 col) every tile is full-width; on sm (2 cols) we cap at 2;
-// on lg+ (6 cols) we apply the user's choice.
-export const COL_SPAN_CLASS: Record<TileColSpan, string> = {
-  1: "lg:col-span-1",
-  2: "sm:col-span-2 lg:col-span-2",
-  3: "sm:col-span-2 lg:col-span-3",
-  4: "sm:col-span-2 lg:col-span-4",
-  5: "sm:col-span-2 lg:col-span-5",
-  6: "sm:col-span-2 lg:col-span-6",
+// We render the homepage with `flex flex-wrap justify-center gap-4` so partial
+// rows are centered. Each tile's width is calc((c/6)*100% - ((1-c/6)*1rem)) to
+// account for the 1rem gap between siblings on lg+. On smaller screens we fall
+// back to coarser fractions (full width / half width).
+//
+// Static class strings so Tailwind v4 picks them up at build time.
+export const TILE_WIDTH_CLASS: Record<TileColSpan, string> = {
+  1: "w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(16.6667%-0.8333rem)]",
+  2: "w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.3333%-0.6667rem)]",
+  3: "w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(50%-0.5rem)]",
+  4: "w-full sm:w-full lg:w-[calc(66.6667%-0.3333rem)]",
+  5: "w-full sm:w-full lg:w-[calc(83.3333%-0.1667rem)]",
+  6: "w-full",
+}
+
+// At narrow widths the bulky preview content (image grids, preview bars, etc.)
+// stretches the tile into an ugly tall rectangle. We hide it below this threshold
+// so narrow tiles render as compact, near-square cards.
+export const COMPACT_TILE_THRESHOLD: TileColSpan = 2
+
+export function isCompactTile(span: TileColSpan): boolean {
+  return span <= COMPACT_TILE_THRESHOLD
 }
 
 // Width as a percentage of the row, for showing in the editor.
