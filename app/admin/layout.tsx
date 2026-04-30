@@ -1,7 +1,7 @@
 // File: app/admin/layout.tsx
 
 import Link from "next/link"
-import { Home, Image, FileText, Music, Calendar, LogOut, Heart, Settings, GraduationCap } from "lucide-react"
+import { Home, Image, FileText, Music, Calendar, LogOut, Heart, Settings, GraduationCap, LayoutGrid } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/auth"
 
@@ -45,6 +45,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
             <Link href="/admin/content"><FileText className="mr-2 h-4 w-4" /> Page Content</Link>
+          </Button>
+          <Button variant="ghost" className="justify-start" asChild>
+            <Link href="/admin/homepage"><LayoutGrid className="mr-2 h-4 w-4" /> Homepage Layout</Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
             <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4" /> Site Settings</Link>

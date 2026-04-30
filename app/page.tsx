@@ -4,8 +4,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Camera, FileText, Heart, Music, ArrowRight, GraduationCap } from "lucide-react"
 import Link from "next/link"
+import { cloneElement, isValidElement } from "react"
 import prisma from "@/lib/prisma"
 import { getContent } from "@/lib/content"
+import {
+  clampOpacity,
+  normalizeSize,
+  tileBackgroundStyle,
+  tileSizeClasses,
+  type TileSize,
+} from "@/lib/tile-config"
 
 export const dynamic = 'force-dynamic'
 
@@ -17,11 +25,25 @@ type SectionCardProps = {
   description: string
   cta: string
   accent?: "primary" | "accent" | "secondary"
+  opacity: number
+  size: TileSize
   children?: React.ReactNode
   delay?: string
 }
 
-function SectionCard({ href, external, icon, title, description, cta, accent = "primary", children, delay }: SectionCardProps) {
+function SectionCard({
+  href,
+  external,
+  icon,
+  title,
+  description,
+  cta,
+  accent = "primary",
+  opacity,
+  size,
+  children,
+  delay,
+}: SectionCardProps) {
   const accentRing =
     accent === "secondary"
       ? "hover:border-secondary/60 hover:shadow-[0_0_0_1px_var(--color-secondary),0_20px_40px_-20px_var(--color-secondary)]"
@@ -36,43 +58,55 @@ function SectionCard({ href, external, icon, title, description, cta, accent = "
       ? "bg-accent/10 text-accent"
       : "bg-primary/10 text-primary"
 
+  const sizeCls = tileSizeClasses(size)
+  const cardStyle: React.CSSProperties = {
+    ...tileBackgroundStyle(opacity),
+    ...(delay ? { animationDelay: delay } : null),
+  }
+
   return (
-    <Card
-      className={`group bg-card/70 backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
-      style={delay ? { animationDelay: delay } : undefined}
-    >
-      <CardContent className="p-5 md:p-6 flex h-full flex-col gap-4">
-        <div className={`flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
-          {icon}
-        </div>
-        <div className="space-y-1.5">
-          <h2 className="font-serif text-lg md:text-xl font-bold text-foreground tracking-tight">
-            {title}
-          </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {description}
-          </p>
-        </div>
-        {children && <div className="flex-1">{children}</div>}
-        <Button
-          asChild
-          variant="ghost"
-          className="group/btn -mx-3 mt-auto justify-start font-semibold text-foreground hover:bg-foreground/5"
-        >
-          {external ? (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {cta}
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-            </a>
-          ) : (
-            <Link href={href}>
-              {cta}
-              <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-            </Link>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className={sizeCls.span}>
+      <Card
+        className={`group backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
+        style={cardStyle}
+      >
+        <CardContent className={`flex h-full flex-col ${sizeCls.padding} ${sizeCls.gap}`}>
+          <div className={`flex items-center justify-center ${sizeCls.iconWrap} ${iconBg} transition-transform duration-300 group-hover:scale-110`}>
+            {isValidElement(icon)
+              ? cloneElement(icon as React.ReactElement<{ className?: string }>, {
+                  className: sizeCls.iconSvg,
+                })
+              : icon}
+          </div>
+          <div className="space-y-1.5">
+            <h2 className={`font-serif font-bold text-foreground tracking-tight ${sizeCls.title}`}>
+              {title}
+            </h2>
+            <p className={`text-muted-foreground leading-relaxed ${sizeCls.description}`}>
+              {description}
+            </p>
+          </div>
+          {children && <div className="flex-1">{children}</div>}
+          <Button
+            asChild
+            variant="ghost"
+            className="group/btn -mx-3 mt-auto justify-start font-semibold text-foreground hover:bg-foreground/5"
+          >
+            {external ? (
+              <a href={href} target="_blank" rel="noopener noreferrer">
+                {cta}
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+              </a>
+            ) : (
+              <Link href={href}>
+                {cta}
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+              </Link>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -82,6 +116,30 @@ export default async function HomePage() {
     prisma.siteSettings.findFirst(),
     getContent(),
   ])
+
+  // Per-tile config (opacity 0-100, size small/medium/large) with sensible defaults.
+  const tile = {
+    picture: {
+      opacity: clampOpacity(settings?.pictureTileOpacity ?? 70),
+      size: normalizeSize(settings?.pictureTileSize ?? "medium"),
+    },
+    text: {
+      opacity: clampOpacity(settings?.textTileOpacity ?? 70),
+      size: normalizeSize(settings?.textTileSize ?? "medium"),
+    },
+    courses: {
+      opacity: clampOpacity(settings?.coursesTileOpacity ?? 70),
+      size: normalizeSize(settings?.coursesTileSize ?? "medium"),
+    },
+    spiritual: {
+      opacity: clampOpacity(settings?.spiritualTileOpacity ?? 70),
+      size: normalizeSize(settings?.spiritualTileSize ?? "medium"),
+    },
+    music: {
+      opacity: clampOpacity(settings?.musicTileOpacity ?? 70),
+      size: normalizeSize(settings?.musicTileSize ?? "medium"),
+    },
+  }
 
   return (
     <div className="min-h-screen">
@@ -107,11 +165,13 @@ export default async function HomePage() {
             {settings?.showPictureSection && (
               <SectionCard
                 href="/gallery"
-                icon={<Camera className="h-6 w-6" />}
+                icon={<Camera />}
                 title="Picture Gallery"
                 description="Visual moments from the journey."
                 cta="View gallery"
                 accent="primary"
+                opacity={tile.picture.opacity}
+                size={tile.picture.size}
                 delay="60ms"
               >
                 <div className="grid grid-cols-2 gap-1.5 rounded-lg overflow-hidden">
@@ -133,11 +193,13 @@ export default async function HomePage() {
             {settings?.showTextSection && (
               <SectionCard
                 href="/texts"
-                icon={<FileText className="h-6 w-6" />}
+                icon={<FileText />}
                 title="Text Gallery"
                 description="Raw thoughts, real stories."
                 cta="Read stories"
                 accent="accent"
+                opacity={tile.text.opacity}
+                size={tile.text.size}
                 delay="120ms"
               >
                 <div className="space-y-2 rounded-lg bg-background/60 p-3">
@@ -151,11 +213,13 @@ export default async function HomePage() {
 
             <SectionCard
               href="/courses"
-              icon={<GraduationCap className="h-6 w-6" />}
+              icon={<GraduationCap />}
               title="Courses"
               description="Learn the craft, from beats to flow."
               cta="View courses"
               accent="primary"
+              opacity={tile.courses.opacity}
+              size={tile.courses.size}
               delay="180ms"
             >
               <div className="rounded-lg bg-muted/70 p-3 space-y-1">
@@ -169,11 +233,13 @@ export default async function HomePage() {
             {settings?.showSpiritualSection && (
               <SectionCard
                 href="/consultation"
-                icon={<Heart className="h-6 w-6" />}
+                icon={<Heart />}
                 title="Spiritual Sessions"
                 description="One-on-one spiritual guidance."
                 cta="Book a session"
                 accent="secondary"
+                opacity={tile.spiritual.opacity}
+                size={tile.spiritual.size}
                 delay="240ms"
               >
                 <div className="rounded-lg bg-muted/70 p-3 space-y-1">
@@ -186,11 +252,13 @@ export default async function HomePage() {
             {settings?.showMusicSection && (
               <SectionCard
                 href="/music"
-                icon={<Music className="h-6 w-6" />}
+                icon={<Music />}
                 title="Music Universe"
                 description="Beats, freestyles, and tracks."
                 cta="Latest tracks"
                 accent="primary"
+                opacity={tile.music.opacity}
+                size={tile.music.size}
                 delay="300ms"
               >
                 <div className="space-y-2">

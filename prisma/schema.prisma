@@ -84,6 +84,20 @@ model SiteSettings {
   showTextSection      Boolean  @default(true)
   showPictureSection   Boolean  @default(true)
   backgroundImageUrl   String?
+
+  // Homepage tile customization. opacity is 0-100 (CSS background opacity %),
+  // size is "small" | "medium" | "large" (controls padding, icon, and grid span).
+  pictureTileOpacity   Int      @default(70)
+  pictureTileSize      String   @default("medium")
+  textTileOpacity      Int      @default(70)
+  textTileSize         String   @default("medium")
+  coursesTileOpacity   Int      @default(70)
+  coursesTileSize      String   @default("medium")
+  spiritualTileOpacity Int      @default(70)
+  spiritualTileSize    String   @default("medium")
+  musicTileOpacity     Int      @default(70)
+  musicTileSize        String   @default("medium")
+
   updatedAt            DateTime @updatedAt
 }
 
