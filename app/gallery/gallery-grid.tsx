@@ -5,6 +5,15 @@ import { Search } from "lucide-react"
 import { ImageLightbox } from "./image-lightbox"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { thumbnailSrcSet } from "@/lib/image"
+
+// Roughly: above-the-fold images on a 5-col xl grid = first row.
+// We hint the browser to fetch the first dozen with high priority.
+const PRIORITY_COUNT = 12
+
+// Sizes attribute matches the responsive grid (2/3/4/5 cols, container max-w-7xl ~1280px).
+const THUMB_SIZES =
+  "(min-width: 1280px) 240px, (min-width: 1024px) 256px, (min-width: 640px) 33vw, 50vw"
 
 interface GalleryImage {
   id: string
@@ -48,8 +57,26 @@ export function GalleryGrid({ images }: GalleryGridProps) {
   const visibleImages = filteredImages.slice(0, visibleCount)
   const hasMore = visibleCount < filteredImages.length
 
-  const openLightbox = (index: number) => setLightboxIndex(index)
-  const closeLightbox = () => setLightboxIndex(null)
+  const openLightbox = (index: number) => {
+    // Use the View Transitions API for a smooth thumb→lightbox morph when supported.
+    if (typeof document !== "undefined" && "startViewTransition" in document) {
+      ;(document as Document & {
+        startViewTransition: (cb: () => void) => unknown
+      }).startViewTransition(() => setLightboxIndex(index))
+      return
+    }
+    setLightboxIndex(index)
+  }
+
+  const closeLightbox = () => {
+    if (typeof document !== "undefined" && "startViewTransition" in document) {
+      ;(document as Document & {
+        startViewTransition: (cb: () => void) => unknown
+      }).startViewTransition(() => setLightboxIndex(null))
+      return
+    }
+    setLightboxIndex(null)
+  }
 
   const showMore = () => {
     setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredImages.length))
@@ -88,6 +115,8 @@ export function GalleryGrid({ images }: GalleryGridProps) {
             <Thumbnail
               key={image.id}
               image={image}
+              priority={index < PRIORITY_COUNT}
+              activeViewTransition={lightboxIndex === index}
               onOpen={() => openLightbox(index)}
             />
           ))}
@@ -123,13 +152,22 @@ export function GalleryGrid({ images }: GalleryGridProps) {
   )
 }
 
-function Thumbnail({ image, onOpen }: { image: GalleryImage; onOpen: () => void }) {
+function Thumbnail({
+  image,
+  priority,
+  activeViewTransition,
+  onOpen,
+}: {
+  image: GalleryImage
+  priority: boolean
+  activeViewTransition: boolean
+  onOpen: () => void
+}) {
   const imgRef = useRef<HTMLImageElement | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [errored, setErrored] = useState(false)
 
   // Cached images can complete before React attaches the onLoad listener.
-  // Check the .complete flag on mount and whenever the ref changes.
   const setRef = (node: HTMLImageElement | null) => {
     imgRef.current = node
     if (node?.complete && node.naturalWidth > 0) {
@@ -137,12 +175,21 @@ function Thumbnail({ image, onOpen }: { image: GalleryImage; onOpen: () => void 
     }
   }
 
+  const srcSet = thumbnailSrcSet(image.src)
+
+  // The active thumbnail (the one being opened) shares its view-transition-name
+  // with the lightbox image so the browser morphs between them.
+  const viewTransitionStyle = activeViewTransition
+    ? ({ viewTransitionName: "gallery-active-image" } as React.CSSProperties)
+    : undefined
+
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={image.alt || image.title || "Open image"}
       className="group relative block aspect-square overflow-hidden rounded-lg bg-white/5 ring-1 ring-white/10 transition-all duration-200 hover:ring-2 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      style={viewTransitionStyle}
     >
       {!loaded && !errored && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-white/10" />
@@ -156,8 +203,12 @@ function Thumbnail({ image, onOpen }: { image: GalleryImage; onOpen: () => void 
         <img
           ref={setRef}
           src={image.src}
+          srcSet={srcSet}
+          sizes={srcSet ? THUMB_SIZES : undefined}
           alt={image.alt || image.title || ""}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          // @ts-expect-error fetchpriority is a valid HTML attribute, types lag.
+          fetchpriority={priority ? "high" : "low"}
           decoding="async"
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}

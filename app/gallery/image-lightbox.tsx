@@ -8,7 +8,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Download, Loader2, X } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Loader2,
+  Share2,
+  X,
+} from "lucide-react"
+import { fullsizeSrcSet } from "@/lib/image"
 
 interface LightboxImage {
   id: string
@@ -26,6 +34,7 @@ interface ImageLightboxProps {
 }
 
 const SWIPE_THRESHOLD_PX = 60
+const DISMISS_THRESHOLD_PX = 120
 
 export function ImageLightbox({
   images,
@@ -40,10 +49,11 @@ export function ImageLightbox({
   const hasNext = isOpen && safeIndex < images.length - 1
 
   const [loaded, setLoaded] = useState(false)
-  const touchStartX = useRef<number | null>(null)
-  const touchStartY = useRef<number | null>(null)
+  const [dragOffsetY, setDragOffsetY] = useState(0)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const isDragging = useRef(false)
 
-  // Reset loading state when navigating to a new image.
+  // Reset loading state when the active image changes.
   useEffect(() => {
     if (!isOpen) return
     setLoaded(false)
@@ -82,18 +92,40 @@ export function ImageLightbox({
   }, [isOpen, safeIndex, images])
 
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    touchStartY.current = e.touches[0].clientY
+    touchStart.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    }
+    isDragging.current = false
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart.current) return
+    const dy = e.touches[0].clientY - touchStart.current.y
+    const dx = e.touches[0].clientX - touchStart.current.x
+    // Engage vertical drag-to-dismiss only when motion is mostly vertical and downward.
+    if (dy > 10 && Math.abs(dy) > Math.abs(dx)) {
+      isDragging.current = true
+      setDragOffsetY(dy)
+    }
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    const dy = e.changedTouches[0].clientY - touchStartY.current
-    touchStartX.current = null
-    touchStartY.current = null
+    if (!touchStart.current) return
+    const dx = e.changedTouches[0].clientX - touchStart.current.x
+    const dy = e.changedTouches[0].clientY - touchStart.current.y
+    touchStart.current = null
 
-    // Only treat as swipe if mostly horizontal.
+    if (isDragging.current) {
+      isDragging.current = false
+      if (dy > DISMISS_THRESHOLD_PX) {
+        onClose()
+      }
+      setDragOffsetY(0)
+      return
+    }
+
+    // Horizontal swipe = navigation.
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > SWIPE_THRESHOLD_PX) {
       if (dx > 0) goToPrev()
       else goToNext()
@@ -115,12 +147,43 @@ export function ImageLightbox({
       a.remove()
       URL.revokeObjectURL(url)
     } catch {
-      // Fall back to opening the image in a new tab.
       window.open(current.src, "_blank", "noopener,noreferrer")
     }
   }
 
+  const handleShare = async () => {
+    if (!current) return
+    const shareUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${window.location.pathname}#${current.id}`
+        : current.src
+    const shareData = {
+      title: current.title || "Image from Fiz",
+      text: current.description || "",
+      url: shareUrl,
+    }
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share(shareData)
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl)
+      }
+    } catch {
+      // User dismissed the share sheet — silent.
+    }
+  }
+
   if (!isOpen || !current) return null
+
+  const fullSrcSet = fullsizeSrcSet(current.src)
+
+  // Drag-out feedback: image follows the finger and the backdrop fades.
+  const dragProgress = Math.min(Math.abs(dragOffsetY) / DISMISS_THRESHOLD_PX, 1)
+  const stageStyle: React.CSSProperties = {
+    transform: dragOffsetY ? `translateY(${dragOffsetY}px)` : undefined,
+    transition: dragOffsetY ? "none" : "transform 0.2s ease-out",
+  }
+  const backdropOpacity = 1 - dragProgress * 0.5
 
   return (
     <Dialog
@@ -132,13 +195,14 @@ export function ImageLightbox({
       <DialogContent
         showCloseButton={false}
         className="h-[100dvh] max-h-[100dvh] w-screen max-w-none overflow-hidden border-none bg-black p-0 text-white"
+        style={{ backgroundColor: `rgba(0, 0, 0, ${backdropOpacity})` }}
       >
         <DialogTitle className="sr-only">
           {current.title || current.alt || "Gallery image"}
         </DialogTitle>
         <DialogDescription className="sr-only">
           {current.description ||
-            `Viewing image ${safeIndex + 1} of ${images.length}`}
+            `Viewing image ${safeIndex + 1} of ${images.length}. Press Escape to close, arrow keys to navigate, or swipe down to dismiss.`}
         </DialogDescription>
 
         {/* Top bar */}
@@ -160,6 +224,15 @@ export function ImageLightbox({
             <Button
               variant="ghost"
               size="icon"
+              onClick={handleShare}
+              aria-label="Share image"
+              className="h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleDownload}
               aria-label="Download image"
               className="h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
@@ -178,10 +251,12 @@ export function ImageLightbox({
           </div>
         </div>
 
-        {/* Image stage with swipe handlers */}
+        {/* Image stage with swipe + drag-to-dismiss handlers */}
         <div
           className="absolute inset-0 flex items-center justify-center"
+          style={stageStyle}
           onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {!loaded && (
@@ -192,17 +267,23 @@ export function ImageLightbox({
           <img
             key={current.id}
             src={current.src}
+            srcSet={fullSrcSet}
+            sizes={fullSrcSet ? "100vw" : undefined}
             alt={current.alt || current.title || ""}
             onLoad={() => setLoaded(true)}
             onError={() => setLoaded(true)}
             draggable={false}
-            className={`max-h-[100dvh] max-w-[100vw] object-contain transition-opacity duration-300 ${
+            // @ts-expect-error fetchpriority is a valid HTML attribute, types lag.
+            fetchpriority="high"
+            decoding="async"
+            style={{ viewTransitionName: "gallery-active-image" }}
+            className={`max-h-[100dvh] max-w-[100vw] object-contain px-2 transition-opacity duration-300 sm:px-16 ${
               loaded ? "opacity-100" : "opacity-0"
-            } px-2 sm:px-16`}
+            }`}
           />
         </div>
 
-        {/* Side nav buttons (hidden on small screens — swipe instead) */}
+        {/* Side nav buttons (desktop) */}
         {hasPrev && (
           <Button
             variant="ghost"
@@ -232,7 +313,7 @@ export function ImageLightbox({
           </Button>
         )}
 
-        {/* Bottom caption + dot indicator on mobile */}
+        {/* Bottom caption + mobile dot indicator + swipe hint */}
         {(current.description || images.length > 1) && (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 py-3 sm:py-4"

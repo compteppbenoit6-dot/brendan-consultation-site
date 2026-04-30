@@ -27,8 +27,35 @@ export default async function GalleryPage() {
     getContent(),
   ])
 
+  // ImageGallery JSON-LD for richer search results.
+  const jsonLd =
+    images.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ImageGallery",
+          name: content.gallery_title || "Picture Gallery",
+          description:
+            content.gallery_subtitle ||
+            "Visual moments from the journey of Fiz.",
+          image: images.slice(0, 30).map((img) => ({
+            "@type": "ImageObject",
+            contentUrl: img.src,
+            name: img.title || undefined,
+            description: img.description || undefined,
+            caption: img.alt || undefined,
+            uploadDate: img.createdAt.toISOString(),
+          })),
+        }
+      : null
+
   return (
     <div className="min-h-screen">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       <section className="relative overflow-hidden px-4 pt-12 pb-8 md:pt-20 md:pb-12">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
