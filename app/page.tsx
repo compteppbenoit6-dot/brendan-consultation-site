@@ -38,7 +38,7 @@ function SectionCard({ href, external, icon, title, description, cta, accent = "
 
   return (
     <Card
-      className={`group bg-card/85 backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
+      className={`group bg-card/70 backdrop-blur-md border border-border/60 transition-all duration-300 h-full overflow-hidden animate-fade-up ${accentRing}`}
       style={delay ? { animationDelay: delay } : undefined}
     >
       <CardContent className="p-5 md:p-6 flex h-full flex-col gap-4">
