@@ -8,9 +8,7 @@ const nextConfig = {
     },
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // ESLint runs separately in Next 16 (no more `next lint` integration).
   typescript: {
     ignoreBuildErrors: true,
   },

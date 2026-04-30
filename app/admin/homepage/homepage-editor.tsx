@@ -25,11 +25,12 @@ import {
 import {
   TILE_LABELS,
   type TileKey,
+  type TileLayoutInput,
   type TileSize,
   tileBackgroundStyle,
   tileSizeClasses,
 } from "@/lib/tile-config"
-import { updateHomepageLayout, type TileLayoutInput } from "./actions"
+import { updateHomepageLayout } from "./actions"
 
 const TILE_ICON: Record<TileKey, React.ReactNode> = {
   picture: <Camera />,

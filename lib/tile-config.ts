@@ -2,6 +2,19 @@ import type { CSSProperties } from "react"
 
 export type TileSize = "small" | "medium" | "large"
 
+export interface TileLayoutInput {
+  pictureTileOpacity: number
+  pictureTileSize: TileSize
+  textTileOpacity: number
+  textTileSize: TileSize
+  coursesTileOpacity: number
+  coursesTileSize: TileSize
+  spiritualTileOpacity: number
+  spiritualTileSize: TileSize
+  musicTileOpacity: number
+  musicTileSize: TileSize
+}
+
 export type TileKey = "picture" | "text" | "courses" | "spiritual" | "music"
 
 export interface TileConfig {

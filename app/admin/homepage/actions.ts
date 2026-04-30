@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireAdmin } from "@/lib/auth-guard"
-import { TILE_KEYS } from "@/lib/tile-config"
+import type { TileLayoutInput } from "@/lib/tile-config"
 
 const SizeSchema = z.enum(["small", "medium", "large"])
 const OpacitySchema = z.coerce.number().int().min(0).max(100)
@@ -21,8 +21,6 @@ const TileLayoutSchema = z.object({
   musicTileOpacity: OpacitySchema,
   musicTileSize: SizeSchema,
 })
-
-export type TileLayoutInput = z.infer<typeof TileLayoutSchema>
 
 export async function getHomepageLayout() {
   await requireAdmin()
@@ -70,6 +68,3 @@ export async function updateHomepageLayout(input: TileLayoutInput) {
     return { error: "Could not save homepage layout." }
   }
 }
-
-// Re-export so the client can render a stable list without re-importing.
-export const TILE_KEYS_FOR_CLIENT = TILE_KEYS
