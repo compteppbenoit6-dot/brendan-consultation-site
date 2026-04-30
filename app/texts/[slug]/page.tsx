@@ -6,6 +6,8 @@ import { ArrowLeft, Calendar, Tag } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
+import { getContent } from "@/lib/content"
+import { linkify } from "@/lib/linkify"
 
 export async function generateStaticParams() {
   const posts = await prisma.textPost.findMany({ select: { slug: true } });
@@ -16,13 +18,16 @@ export async function generateStaticParams() {
 
 export default async function TextPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = await prisma.textPost.findUnique({
-    where: { slug }
-  });
+  const [post, content] = await Promise.all([
+    prisma.textPost.findUnique({ where: { slug } }),
+    getContent(),
+  ]);
 
   if (!post) {
     notFound()
   }
+
+  const byline = content.texts_byline || "Written by Fiz • Pittsburgh's finest freestyle rapper & beat maker"
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,9 +47,9 @@ export default async function TextPost({ params }: { params: Promise<{ slug: str
           <Card className="bg-card border-2 border-border">
             {post.imageUrl && (
               <div className="aspect-video overflow-hidden rounded-t-xl border-b">
-                <img 
-                  src={post.imageUrl} 
-                  alt={post.title} 
+                <img
+                  src={post.imageUrl}
+                  alt={post.title}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -63,14 +68,14 @@ export default async function TextPost({ params }: { params: Promise<{ slug: str
                 </div>
               </div>
 
-              <h1 className="font-serif font-black text-3xl md:text-4xl text-foreground mb-8 leading-tight">
+              <h1 className="font-serif font-black text-3xl md:text-4xl text-foreground mb-8 leading-tight break-words">
                 {post.title}
               </h1>
 
-              <div className="prose prose-lg max-w-none">
+              <div className="prose prose-lg max-w-none break-words [overflow-wrap:anywhere]">
                 {post.content.split("\n\n").map((paragraph, index) => (
                   <p key={index} className="text-secondary leading-relaxed mb-6 last:mb-0">
-                    {paragraph}
+                    {linkify(paragraph)}
                   </p>
                 ))}
               </div>
@@ -78,7 +83,7 @@ export default async function TextPost({ params }: { params: Promise<{ slug: str
               <div className="mt-12 pt-8 border-t border-border">
                 <div className="text-center space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Written by Fiz • Pittsburgh's finest freestyle rapper & beat maker
+                    {byline}
                   </p>
                   <div className="flex justify-center space-x-4">
                     <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent">

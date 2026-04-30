@@ -40,8 +40,20 @@ export async function updateContentBlocks(prevState: any, formData: FormData) {
 
 export async function ensureContentBlocks() {
   const defaultBlocks = [
+    // Page hero copy
+    { key: 'home_subtitle', value: "Pittsburgh's greatest freestyle rapper & beat maker. Making real music with my heart. Been battling \"I don't Give A F*ck\" all my life. It feels good." },
+    { key: 'gallery_title', value: 'Picture Gallery' },
+    { key: 'gallery_subtitle', value: 'Visual moments from the journey. Life through my lens, beats through my soul.' },
+    { key: 'music_title', value: 'Music Universe' },
+    { key: 'music_subtitle', value: 'All my beats, freestyles, and tracks. Made from scratch with pure heart. Real music for the world.' },
+    { key: 'texts_title', value: 'Text Gallery' },
+    { key: 'texts_subtitle', value: 'Raw thoughts, real stories. Words straight from the soul of a Pittsburgh beat maker.' },
+    { key: 'texts_byline', value: "Written by Fiz • Pittsburgh's finest freestyle rapper & beat maker" },
     { key: 'courses_title', value: 'Courses' },
     { key: 'courses_subtitle', value: 'Learn the craft, from beatmaking fundamentals to advanced freestyle techniques.' },
+    // Footer
+    { key: 'footer_email', value: 'brendan89890@yahoo.com' },
+    { key: 'footer_youtube_url', value: 'https://www.youtube.com/@snapcracklefizzle9954' },
     // Global SEO
     { key: 'seo_title', value: 'Fiz - Freestyle & Beats' },
     { key: 'seo_description', value: "Pittsburgh's finest freestyle rapper and beat maker. Real music for the world." },
